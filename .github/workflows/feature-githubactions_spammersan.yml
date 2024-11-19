@@ -6,7 +6,7 @@ name: Build and deploy JAR app to Azure Web App - spammersan
 on:
   push:
     branches:
-      - feature/GitHubActions
+      - main
   workflow_dispatch:
 
 jobs:
