@@ -27,12 +27,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Build with Maven
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
-          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      - name: Debug Database Connection
+        run: |
+          echo "DATABASE_URL starts with: ${DATABASE_URL:0:20}..."
+          echo "DATABASE_USERNAME starts with: ${DATABASE_USERNAME:0:10}..."
+    
+      - name: Enviroment Variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
+      - name: Build With Maven
         run: mvn -B package --file pom.xml
+        #run: mvn -B package --file pom.xml -Dspring.datasource.url=${{ secrets.DATABASE_URL }} -Dspring.datasource.username=${{ secrets.DATABASE_USERNAME }} -Dspring.datasource.password=${{ secrets.DATABASE_PASSWORD }}
       - name: Test Report
         uses: actions/upload-artifact@v4
         if: success() || failure()
