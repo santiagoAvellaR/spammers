@@ -27,6 +27,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      - name: Debug Database Connection
+        run: |
+          echo "DATABASE_URL starts with: ${DATABASE_URL:0:20}..."
+          echo "DATABASE_USERNAME starts with: ${DATABASE_USERNAME:0:10}..."
+    
       - name: Build with Maven
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
