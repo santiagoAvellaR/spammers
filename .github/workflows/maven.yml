@@ -32,7 +32,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        run: echo "secrets.DATABASE_USERNAME" ; echo "$DATABASE_USERNAME" ; mvn -B package --file pom.xml
+        run: echo "$secrets.DATABASE_USERNAME" ; echo "$DATABASE_USERNAME" ; mvn -B package --file pom.xml
       - name: Test Report
         uses: actions/upload-artifact@v4
         if: success() || failure()
