@@ -123,7 +123,9 @@
 						<configuration>
 							<excludes>
 								<!-- Excluding controller classes for analysis with JACOCO -->
-								<!-- <exclude>**/com/spammers/AlertsAndNotifications/Application.class</exclude> -->
+								<!-- Excluding default application class, and the exception classes-->
+								<exclude>**/com/spammers/AlertsAndNotifications/Application.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/exceptions/*</exclude>
 							</excludes>
 						</configuration>
 					</execution>
