@@ -37,6 +37,8 @@ jobs:
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
           echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> $GITHUB_ENV
           echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
+          echo "CORREO=${{ secrets.CORREO }}" >> $GITHUB_ENV
+          echo "CORREO_PASSWORD=${{ secrets.CORREO_PASSWORD }}" >> $GITHUB_ENV
       - name: Build With Maven
         run: mvn -B package --file pom.xml
         #run: mvn -B package --file pom.xml -Dspring.datasource.url=${{ secrets.DATABASE_URL }} -Dspring.datasource.username=${{ secrets.DATABASE_USERNAME }} -Dspring.datasource.password=${{ secrets.DATABASE_PASSWORD }}
