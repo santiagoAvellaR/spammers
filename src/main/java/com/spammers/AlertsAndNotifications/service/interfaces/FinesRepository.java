@@ -10,10 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FinesRepository extends JpaRepository<FineModel, String> {
-    /*
-    Optional<FineModel> findByFineId(String fineId);
-    Optional<FineModel> findByLoanId(String loanId);
     @Query("SELECT l FROM FineModel l WHERE l.expiredDate = :currentDate")
     List<FineModel> findByExpiredDate(@Param("currentDate") LocalDateTime currentDate);
-     */
+
 }

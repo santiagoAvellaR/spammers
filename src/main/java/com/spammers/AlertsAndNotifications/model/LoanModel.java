@@ -1,13 +1,10 @@
 package com.spammers.AlertsAndNotifications.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "Loans")
@@ -15,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 public class LoanModel {
     @Id
-    @Column(name = "idLoan", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
 
     @Column(name = "userId", nullable = false)
@@ -25,9 +22,19 @@ public class LoanModel {
     private String bookId;
 
     @Column(name = "loanDate", nullable = false)
-    private LocalDateTime loanDate;
+    private LocalDate loanDate;
 
     @Column(name = "loanExpired", nullable = false)
-    private LocalDateTime loanExpired;
+    private LocalDate loanExpired;
+
+    @Column(name="status", nullable=false)
+    private boolean status;
+    public LoanModel(String userId, String bookId, LocalDate loanDate, LocalDate loanExpired, boolean status) {
+        this.userId = userId;
+        this.bookId = bookId;
+        this.loanDate = loanDate;
+        this.loanExpired = loanExpired;
+        this.status = status;
+    }
 }
 

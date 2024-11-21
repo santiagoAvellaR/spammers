@@ -1,6 +1,7 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
+import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -32,12 +33,12 @@ public class EmailServiceImpl implements EmailService {
      * @param to The receiver of the email.
      * @param subject The subject of the email.
      * @param body The content of the content.
-     * @throws SpammersPrivateExceptions If there is email is not sent correctly.
+     * @throws SpammersPrivateExceptions If the email is not sent correctly.
      */
     @Override
-    public void sendEmail(String to, String subject, String body) throws SpammersPrivateExceptions {
+    public void sendEmailCustomised(String to, String subject, String body) throws SpammersPrivateExceptions {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(email); // Desde qué correo se enviará
+        message.setFrom(email);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
@@ -46,6 +47,30 @@ public class EmailServiceImpl implements EmailService {
             logger.info("Email sent correctly!");
         } catch (MailException e) {
             logger.error("There has been an error, the email was not correctly sent: "+e.getMessage());
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION);
+        }
+    }
+
+    /**
+     * This method allows to send an email with the Email Template, by providing the template and the respective arguments.
+     * @param to The receiver of the email.
+     * @param template The template of the email.
+     * @param args The arguments to customise the content.
+     * @throws SpammersPrivateExceptions If the email is not sent correctly.
+     */
+    @Override
+    public void sendEmailTemplate(String to, EmailTemplate template, Object... args) throws SpammersPrivateExceptions {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(email);
+        message.setTo(to);
+        message.setSubject(template.getSubject());
+        message.setText(template.formatBody(args));
+
+        try {
+            javaMailSender.send(message);
+            logger.info("Email sent correctly using template: {}", template.name());
+        } catch (MailException e) {
+            logger.error("There has been an error, the email was not correctly sent: {}", e.getMessage());
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION);
         }
     }

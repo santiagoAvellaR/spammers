@@ -4,23 +4,29 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name="Notifications")
 @RequiredArgsConstructor
 @Getter
 public class NotificationModel {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String idNotification;
 
     @Column(name="studentId", nullable = false)
     private String studentId;
 
-    @Column(name="content", nullable = false, length = 300)
-    private String content;
+    @Column(name="emailGuardian", nullable = false)
+    private String emailGuardian;
 
     @Column(name="sendDate", nullable = true)
-    private LocalDateTime sendDate;
+    private LocalDate sendDate;
+
+    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate) {
+        this.studentId = studentId;
+        this.emailGuardian = emailGuardian;
+        this.sendDate = sendDate;
+    }
 }

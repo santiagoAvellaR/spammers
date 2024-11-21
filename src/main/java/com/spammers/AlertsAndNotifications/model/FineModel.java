@@ -1,14 +1,11 @@
 package com.spammers.AlertsAndNotifications.model;
 
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name="Fines")
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 public class FineModel {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String fineId;
 
     @Column(name="loanId",nullable = false)
@@ -28,7 +26,7 @@ public class FineModel {
     private float amount;
 
     @Column(name="expiredDate", nullable = false)
-    private LocalDateTime expiredDate;
+    private LocalDate expiredDate;
 
     @Column(name="fineStatus", nullable = false)
     private FineStatus fineStatus;
