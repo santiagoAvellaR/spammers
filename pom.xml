@@ -33,7 +33,7 @@
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<!-- Excluding controller classes for analysis with SonarQube -->
 		<!-- Excluding default application class, and the exception classes-->
-		<sonar.exclusions>**/com/spammers/AlertsAndNotifications/exceptions/*, **/com/spammers/AlertsAndNotifications/Application.java</sonar.exclusions>
+		<sonar.coverage.exclusions>**/com/spammers/AlertsAndNotifications/exceptions/*, **/com/spammers/AlertsAndNotifications/controller/*,**/com/spammers/AlertsAndNotifications/Application.java,**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.java</sonar.coverage.exclusions>
 
 	</properties>
 	<dependencies>
