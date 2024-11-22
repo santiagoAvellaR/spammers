@@ -20,6 +20,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This service provides the Notifications features, in order to handle the
+ * possible notifications to the user's guardian and handle Fines.
+ * @version 1.0
+ * @since 22-11-2024
+ */
 @RequiredArgsConstructor
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -29,9 +35,6 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationRepository notificationRepository;
     private final ApiClient apiClient;
     private int page = 0;
-
-
-
 
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
@@ -50,6 +53,12 @@ public class NotificationServiceImpl implements NotificationService {
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+loan.getLoanExpired());
     }
 
+    /**
+     * This method closes a loan if it has not a fine associated with PENDING status.
+     * @param idLoan the Loan id.
+     * @throws SpammersPublicExceptions If loan is not found in the Database
+     * @throws SpammersPrivateExceptions If the Loan has a current fine with PENDING status
+     */
     @Override
     public void closeLoan(String idLoan) throws SpammersPublicExceptions, SpammersPrivateExceptions {
         Optional<LoanModel> loan  = loanRepository.findById(idLoan);

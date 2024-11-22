@@ -17,9 +17,8 @@ public class FineModel {
     private String fineId;
 
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name="loanId", nullable=false)
-    @PrimaryKeyJoinColumn(name="loanId")
     private LoanModel loan;
 
     @Column(name="description", nullable=false, length=300)

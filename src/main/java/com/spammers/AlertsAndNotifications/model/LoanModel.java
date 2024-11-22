@@ -15,7 +15,7 @@ public class LoanModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
 
-    @OneToOne(mappedBy = "loan")
+    @OneToOne(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
     private FineModel fineModel;
 
     @Column(name = "userId", nullable = false)
