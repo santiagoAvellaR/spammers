@@ -16,8 +16,11 @@ public class FineModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String fineId;
 
-    @Column(name="loanId",nullable = false)
-    private String loanId;
+
+    @OneToOne
+    @JoinColumn(name="loanId", nullable=false)
+    @PrimaryKeyJoinColumn(name="loanId")
+    private LoanModel loan;
 
     @Column(name="description", nullable=false, length=300)
     private String description;

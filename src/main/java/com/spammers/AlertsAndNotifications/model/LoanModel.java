@@ -15,6 +15,9 @@ public class LoanModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
 
+    @OneToOne(mappedBy = "loan")
+    private FineModel fineModel;
+
     @Column(name = "userId", nullable = false)
     private String userId;
 

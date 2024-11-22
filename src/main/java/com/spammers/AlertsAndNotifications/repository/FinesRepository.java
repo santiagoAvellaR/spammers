@@ -13,4 +13,6 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
     @Query("SELECT l FROM FineModel l WHERE l.expiredDate = :currentDate")
     List<FineModel> findByExpiredDate(@Param("currentDate") LocalDateTime currentDate);
 
+    @Query("SELECT l FROM FineModel l WHERE l.loan.loanId = :givenLoanId")
+    Optional<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
 }

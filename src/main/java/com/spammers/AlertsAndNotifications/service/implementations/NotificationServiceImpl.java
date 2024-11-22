@@ -2,21 +2,23 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.LoanModel;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
+import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,6 +28,8 @@ public class NotificationServiceImpl implements NotificationService {
     private EmailService emailService;
     private NotificationRepository notificationRepository;
     private final ApiClient apiClient;
+    private int page = 0;
+
 
 
 
@@ -43,16 +47,16 @@ public class NotificationServiceImpl implements NotificationService {
         LoanModel loanM = new LoanModel(loan.getUserId(),loan.getBookId(),loan.getLoanDate(),loan.getLoanExpired(),loan.getStatus());
         notificationRepository.save(notification);
         loanRepository.save(loanM);
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado.");
-    }
-
-    private boolean validate(float fineRate) {
-        return fineRate <= 0;
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+loan.getLoanExpired());
     }
 
     @Override
-    public void closeLoan(String idLoan) {
-
+    public void closeLoan(String idLoan) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> loan  = loanRepository.findById(idLoan);
+        if(loan.isEmpty()) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
+        Optional<FineModel> fine  = finesRepository.findByLoanId(idLoan);
+        if(fine.isPresent() && fine.get().getFineStatus().equals(FineStatus.PENDING)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
+        loanRepository.delete(loan.get());
     }
 
     @Override
@@ -60,14 +64,37 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+    /**
+     * This method sendEmails every 10 minutes between 10 - 12 Monday to Friday.
+     * With Pagination of the Query for better performance.
+     */
     @Scheduled(cron = "0 */10 10-12 * * MON-FRI")
-    public void checkLoans(){ // TODO Add pagination.
-        List<LoanModel> loans = loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3));
+    public void checkLoansThreeDays(){
+        processEmails();
+        page = page > 18 ? 0 : page+1;
+    }
+
+    private void processEmails(){
+        List<LoanModel> loans = fetchEmailsToSend();
         for(LoanModel loan : loans){
-            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-            emailService.sendEmailTemplate(userInfo.getGuardianEmail(),EmailTemplate.NOTIFICATION_ALERT,
-                    "Tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+            sendEmail(loan);
         }
+    }
+
+    private void sendEmail(LoanModel loan) {
+        UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
+        emailService.sendEmailTemplate(userInfo.getGuardianEmail(),EmailTemplate.NOTIFICATION_ALERT
+                ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+    }
+
+    private List<LoanModel> fetchEmailsToSend(){
+        int pageSize = 15;
+        Pageable pageable = PageRequest.of(page, pageSize);
+        return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now(),pageable);
+    }
+
+    private boolean validate(float fineRate) {
+        return fineRate <= 0;
     }
 }
 
