@@ -1,6 +1,8 @@
-package com.spammers.AlertsAndNotifications.service.interfaces;
+package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +14,7 @@ import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<LoanModel, String> {
     @Query("SELECT l FROM LoanModel l WHERE l.loanExpired < :currentDate")
-    List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDateTime currentDate);
+    List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDateTime currentDate, Pageable pageable);
 
     @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
     List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays);

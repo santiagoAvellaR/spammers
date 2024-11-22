@@ -1,4 +1,4 @@
-package com.spammers.AlertsAndNotifications.service.interfaces;
+package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -6,13 +6,14 @@ import com.spammers.AlertsAndNotifications.model.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
-import com.spammers.AlertsAndNotifications.model.enums.FineDescription;
+import com.spammers.AlertsAndNotifications.repository.FinesRepository;
+import com.spammers.AlertsAndNotifications.repository.LoanRepository;
+import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
