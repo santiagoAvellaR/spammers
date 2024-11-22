@@ -5,39 +5,29 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
+import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class NotificationServiceImpl implements NotificationService {
     private FinesRepository finesRepository;
     private LoanRepository loanRepository;
     private EmailService emailService;
     private NotificationRepository notificationRepository;
+    private final ApiClient apiClient;
 
-    public NotificationServiceImpl(FinesRepository finesRepository, LoanRepository loanRepository,NotificationRepository notificationRepository, EmailService emailService) {
-        this.finesRepository = finesRepository;
-        this.loanRepository = loanRepository;
-        this.notificationRepository = notificationRepository;
-        this.emailService = emailService;
-    }
 
-    @Scheduled(cron = "0 30 8 * * ?")
-    private void checkLoans(){
-        List<LoanModel> loans = loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3));
-        for(LoanModel loan : loans){
-
-            //emailService.sendEmail(loan.getLoanId(), );
-        }
-    }
 
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
@@ -69,4 +59,15 @@ public class NotificationServiceImpl implements NotificationService {
     public void closeFine(String idLoan) {
 
     }
+
+    @Scheduled(cron = "0 */10 10-12 * * MON-FRI")
+    public void checkLoans(){ // TODO Add pagination.
+        List<LoanModel> loans = loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3));
+        for(LoanModel loan : loans){
+            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
+            emailService.sendEmailTemplate(userInfo.getGuardianEmail(),EmailTemplate.NOTIFICATION_ALERT,
+                    "Tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+        }
+    }
 }
+
