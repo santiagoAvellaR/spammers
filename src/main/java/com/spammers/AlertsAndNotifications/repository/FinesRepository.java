@@ -14,6 +14,6 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
     @Query("SELECT l FROM FineModel l WHERE l.fineType = :givenFineType")
     List<FineModel> findByFineType(@Param("givenFineType") FineType givenFineType);
 
-    @Query("SELECT l FROM FineModel l WHERE l.loan.loanId = :givenLoanId")
-    Optional<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
+    @Query("SELECT f FROM FineModel f WHERE f.loan.loanId = :givenLoanId")
+    List<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
 }

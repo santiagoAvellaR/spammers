@@ -17,7 +17,7 @@ public class FineModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String fineId;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne
     @JoinColumn(name="loanId", nullable=false)
     private LoanModel loan;
 

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Loans")
@@ -15,8 +17,8 @@ public class LoanModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
 
-    @OneToOne(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private FineModel fineModel;
+    @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FineModel> fines = new ArrayList<>();
 
     @Column(name = "userId", nullable = false)
     private String userId;

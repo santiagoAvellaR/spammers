@@ -63,9 +63,20 @@ public class NotificationServiceImpl implements NotificationService {
     public void closeLoan(String idLoan) throws SpammersPublicExceptions, SpammersPrivateExceptions {
         Optional<LoanModel> loan  = loanRepository.findById(idLoan);
         if(loan.isEmpty()) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
-        Optional<FineModel> fine  = finesRepository.findByLoanId(idLoan);
-        if(fine.isPresent() && fine.get().getFineStatus().equals(FineStatus.PENDING)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
+        List<FineModel> fines  = finesRepository.findByLoanId(idLoan);
+        if(fines.isEmpty() || pendingFine(fines)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
         loanRepository.delete(loan.get());
+    }
+
+    private boolean pendingFine(List<FineModel> fines) {
+        boolean pending = false;
+        for (FineModel fine : fines) {
+            if(fine.getFineStatus().equals(FineStatus.PENDING)){
+                pending = true;
+                break;
+            }
+        }
+        return pending;
     }
 
     @Override
