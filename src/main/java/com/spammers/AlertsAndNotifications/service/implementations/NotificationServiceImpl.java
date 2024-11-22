@@ -29,10 +29,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class NotificationServiceImpl implements NotificationService {
-    private FinesRepository finesRepository;
-    private LoanRepository loanRepository;
-    private EmailService emailService;
-    private NotificationRepository notificationRepository;
+    private final FinesRepository finesRepository;
+    private final LoanRepository loanRepository;
+    private final EmailService emailService;
+    private final NotificationRepository notificationRepository;
     private final ApiClient apiClient;
     private int page = 0;
 

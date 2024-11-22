@@ -1,6 +1,7 @@
 package com.spammers.AlertsAndNotifications.model;
 
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
+import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ public class FineModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String fineId;
-
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name="loanId", nullable=false)
@@ -32,4 +32,7 @@ public class FineModel {
 
     @Column(name="fineStatus", nullable = false)
     private FineStatus fineStatus;
+
+    @Column(name="fineType", nullable = false)
+    private FineType fineType;
 }
