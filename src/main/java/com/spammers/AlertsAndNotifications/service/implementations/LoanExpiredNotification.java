@@ -66,7 +66,7 @@ public class LoanExpiredNotification {
     }
 
     private void changeLoanEmailExpiredSent(LoanModel loanModel){
-        loanModel.setEmailExpiredSent(true);
+        loanModel.setStatus(false);
         loanRepository.save(loanModel);
     }
 }

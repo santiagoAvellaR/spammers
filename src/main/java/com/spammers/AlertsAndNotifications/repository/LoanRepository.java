@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface LoanRepository extends JpaRepository<LoanModel, String> {
-    @Query("SELECT l FROM LoanModel l WHERE l.loanExpired < :currentDate AND l.emailExpiredSent=false")
+    @Query("SELECT l FROM LoanModel l WHERE l.loanExpired < :currentDate AND l.status=true")
     List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDate currentDate, Pageable pageable);
 
     @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
