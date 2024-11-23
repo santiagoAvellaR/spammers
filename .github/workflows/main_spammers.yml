@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - spammersan
+name: Build and deploy JAR app to Azure Web App - Spammers
 
 on:
   push:
@@ -22,13 +22,6 @@ jobs:
           java-version: '17'
           distribution: 'microsoft'
 
-      - name: Enviroment Variables
-        run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> $GITHUB_ENV
-          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
-          echo "CORREO=${{ secrets.CORREO }}" >> $GITHUB_ENV
-          echo "CORREO_PASSWORD=${{ secrets.CORREO_PASSWORD }}" >> $GITHUB_ENV
       - name: Build with Maven
         run: mvn clean install
 
@@ -44,27 +37,18 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
-  
+      
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
       
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A68D5741A5454B67A2D957685AA9B564 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7CC38B80D3A641CD9D8C1BFA32A9D413 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_714812ECB7AB400A89215971C39FA79B }}
-
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'spammersan'
+          app-name: 'Spammers'
           slot-name: 'Production'
           package: '*.jar'
-          
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3872411B3DCF4FD99966550FD68BC0AD }}
