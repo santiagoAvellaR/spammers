@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Loans")
@@ -16,6 +18,9 @@ public class LoanModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
+
+    @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FineModel> fines = new ArrayList<>();
 
     @Column(name = "userId", nullable = false)
     private String userId;

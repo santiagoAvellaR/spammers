@@ -16,6 +16,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * This class provides the daily check of expired loans.
+ * @since 21-11-2024
+ * @version 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class LoanExpiredNotification {
@@ -28,7 +33,13 @@ public class LoanExpiredNotification {
     private int page = 0;
 
 
-    @Scheduled(cron = "0 */10 8-10 * * MON-FRI") // Cada 10 minutos de lunes a viernes entre las 8 y las 10:59
+    
+    /**
+     * This method sendEmails every 10 in range [8-10] A.M. Monday - Friday
+     * With Pagination from the Database for better performance.
+     */
+    @Scheduled(cron = "0 */10 8-10 * * MON-FRI") // Cada 5 minutos de lunes a viernes entre las 8 y las 9:59
+
     public void sendEmails() {
         processEmails();
         page = page > 17 ? 0 : page+1;
