@@ -14,6 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Enviroment Variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
+          echo "CORREO=${{ secrets.CORREO }}" >> $GITHUB_ENV
+          echo "CORREO_PASSWORD=${{ secrets.CORREO_PASSWORD }}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
 
       - name: Set up Java version
