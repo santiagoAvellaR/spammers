@@ -11,4 +11,5 @@ public interface NotificationService {
     // They don't create the Fines, we do.
     //void createFine(LoanModel loan);
     void closeFine(String idLoan);
+    void returnBook(LoanDTO loan, boolean returnedInBadCondition);
 }
