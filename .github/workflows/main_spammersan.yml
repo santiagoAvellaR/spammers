@@ -15,13 +15,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+     
 
       - name: Set up Java version
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'microsoft'
-
+      - name: Enviroment Variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
+          echo "CORREO=${{ secrets.CORREO }}" >> $GITHUB_ENV
+          echo "CORREO_PASSWORD=${{ secrets.CORREO_PASSWORD }}" >> $GITHUB_ENV
       - name: Build with Maven
         run: mvn clean install
 
