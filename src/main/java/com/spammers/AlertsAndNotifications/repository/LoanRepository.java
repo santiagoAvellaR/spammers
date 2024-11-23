@@ -17,5 +17,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
     List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDateTime currentDate, Pageable pageable);
 
     @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
-    List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays);
+    List<LoanModel> findLoansExpiringInExactlyNDays(
+            @Param("dateInThreeDays") LocalDate dateInThreeDays,
+            Pageable pageable);
 }
