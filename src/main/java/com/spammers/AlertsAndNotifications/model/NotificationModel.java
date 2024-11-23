@@ -21,12 +21,12 @@ public class NotificationModel {
     @Column(name="emailGuardian", nullable = false)
     private String emailGuardian;
 
-    @Column(name="sendDate", nullable = true)
-    private LocalDate sendDate;
+    @Column(name="sentDate", nullable = true)
+    private LocalDate sentDate;
 
     public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate) {
         this.studentId = studentId;
         this.emailGuardian = emailGuardian;
-        this.sendDate = sendDate;
+        this.sentDate = sendDate;
     }
 }
