@@ -3,17 +3,24 @@ package com.spammers.AlertsAndNotifications.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Loans")
 @RequiredArgsConstructor
 @Getter
+@Setter
 public class LoanModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String loanId;
+
+    @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FineModel> fines = new ArrayList<>();
 
     @Column(name = "userId", nullable = false)
     private String userId;
@@ -29,6 +36,7 @@ public class LoanModel {
 
     @Column(name="status", nullable=false)
     private boolean status;
+
     public LoanModel(String userId, String bookId, LocalDate loanDate, LocalDate loanExpired, boolean status) {
         this.userId = userId;
         this.bookId = bookId;
