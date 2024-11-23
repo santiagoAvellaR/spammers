@@ -5,7 +5,8 @@ name: Build and deploy JAR app to Azure Web App - spammersan
 env:
   AZURE_WEBAPP_NAME: spammersan    # set this to the name of your Azure Web App
   JAVA_VERSION: '17'                  # set this to the Java version to use
-  DISTRIBUTION: 'temurin'   
+
+  DISTRIBUTION: 'temurin'
 on:
   push:
     branches:
@@ -18,7 +19,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-     
+
 
       - name: Set up Java version
         uses: actions/setup-java@v4
@@ -47,13 +48,13 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-      
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
-      
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
