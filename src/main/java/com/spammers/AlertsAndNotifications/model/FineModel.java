@@ -2,14 +2,16 @@ package com.spammers.AlertsAndNotifications.model;
 
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
+@Builder
 @Entity
 @Table(name="Fines")
-@RequiredArgsConstructor
 @Getter
 public class FineModel {
     @Id
