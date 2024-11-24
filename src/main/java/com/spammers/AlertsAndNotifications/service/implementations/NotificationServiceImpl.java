@@ -103,21 +103,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-    // TODO --> Se debe tener en cuenta que la funcion de closeLoan es para la devolucion (close Loan).
+
     @Override
-    public void returnBook(LoanDTO loan, boolean returnedInBadCondition) {
-        UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-        Optional<LoanModel> loanModel = loanRepository.findLoanByUserAndBookId(loan.getUserId(), loan.getBookId());
-        // @Daneil-Aldana
-        // TODO --> Para el mensaje en formato, puedes ver el EmailTemplate, está hecho para poder pasarle argumentos y te de el mensaje hecho.
-        // Ejemplos de su uso en la clase de pruebas EmailTemplateTest
-        LocalDate dateLoan = loan.getLoanReturn();
-        DateTimeFormatter formatter  = DateTimeFormatter.ofPattern("dd MMMM yyyy");
-
-        String formatteDate = dateLoan.format(formatter);
+    public void returnBook(String bookId, boolean returnedInBadCondition) {
+        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, returnedInBadCondition);
+        if(loanModel.isEmpty()){
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
+        }
+        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
-
-        String emailBody = buildEmailBody(formatteDate, userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
+        String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
     }
     /**
@@ -140,18 +135,20 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay){
-        String emailbody = "Buen dia, " + guardianName + "le informamos que el dia de hoy el estudiante " + studentName + "\n" +
-                " ha hecho la devolución de un libro que tomo a préstamo el dia " + loanDate + ",\n";
-        if(!statusLoan){
-            emailbody += "sin embargo tuvo un retraso de " + delay + " dias";
-        }
-        if(badCondition){
-            emailbody += "el libro se devolvio en malas condicones.\n";
-        }
-        emailbody += "Gracias,\nCordial Saludo.\nEste es el gestor de notificaciones de Biblosoft\n";
-        emailbody += "No responder a esta cuenta de correo ya que es enviada por un motor de notificaciones automáticas.";
-        return emailbody;
+    private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
+
+        String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
+        String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
+
+
+        return String.format(
+                EmailTemplate.BOOK_RETURN.getTemplate(),
+                guardianName,
+                studentName,
+                loanDate,
+                delayMessage,
+                conditionMessage
+        );
     }
 
     private void sendEmail(LoanModel loan) {

@@ -13,5 +13,5 @@ public interface NotificationService {
     void closeLoan(String bookId, String userId)throws SpammersPublicExceptions, SpammersPrivateExceptions ;
     List<FineModel> getFines(String userId);
     List<NotificationModel> getNotifications(String userId);
-    void returnBook(LoanDTO loan, boolean returnedInBadCondition);
+    void returnBook(String bookId, boolean returnedInBadCondition);
 }

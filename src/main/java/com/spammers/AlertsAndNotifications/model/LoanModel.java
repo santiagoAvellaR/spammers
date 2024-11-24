@@ -40,6 +40,9 @@ public class LoanModel {
     @Column(name="status", nullable=false)
     private boolean status;
 
+    @Column(name="bookReturned", nullable = false)
+    private boolean bookReturned;
+
     public LoanModel(String userId, String bookId, LocalDate loanDate, String bookName,LocalDate loanExpired, boolean status) {
         this.userId = userId;
         this.bookId = bookId;

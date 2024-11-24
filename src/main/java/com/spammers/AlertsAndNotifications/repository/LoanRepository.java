@@ -22,4 +22,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
             Pageable pageable);
     @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId AND l.bookId = :givenBookId")
     Optional<LoanModel> findLoanByUserAndBookId(@Param("givenUserId") String givenUserId, @Param("givenBookId") String givenBookId);
+    @Query("SELECT l FROM LoanModel l WHERE l.bookId = : givenBookId AND l.bookReturned = :bookReturned")
+    Optional<LoanModel> findLoanByBookIdAndBookReturned(@Param("givenBookId") String givenBookId, @Param("bookReturned") boolean bookReturned);
+
 }

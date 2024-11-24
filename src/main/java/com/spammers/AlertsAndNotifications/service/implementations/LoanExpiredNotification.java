@@ -64,7 +64,7 @@ public class LoanExpiredNotification {
     private void sendEmail(LoanModel loan) {
         UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
         String emailBody = String.format("""
-                Buen día .Su representado %s tomó prestado un libro en la fecha %s
+                Buen día. Su representado %s tomó prestado un libro en la fecha %s
                 y a la fecha aún no lo ha devuelto. Solicitamos por favor se haga la entrega
                 lo mas pronto posible.
                 Gracias,

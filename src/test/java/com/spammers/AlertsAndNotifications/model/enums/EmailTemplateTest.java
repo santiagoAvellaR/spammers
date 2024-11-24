@@ -95,4 +95,5 @@ class EmailTemplateTest {
         String formattedMessage = EmailTemplate.FINE_ALERT.formatBody(amount, date, description);
         assertEquals(expectedMessage, formattedMessage);
     }
+
 }

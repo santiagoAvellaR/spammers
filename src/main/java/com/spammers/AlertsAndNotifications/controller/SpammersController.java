@@ -1,6 +1,7 @@
 package com.spammers.AlertsAndNotifications.controller;
 
 
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
@@ -70,5 +71,23 @@ public class SpammersController {
         notificationService.closeLoan(bookId,userId);
         return "Loan Closed!";
     }
+    /**
+     * This method handles the creation of a return notification.
+     * It sends a notification to the parent of the student when a book is returned,
+     * indicating whether the book was returned in good or bad condition.
+     *
+     * @param bookId the ID of the book being returned.
+     * @param returnedInBadCondition a flag indicating whether the book was returned in bad condition.
+     * @return A message confirming that the book return notification was sent.
+     * @throws SpammersPrivateExceptions if the loan record is not found for the given bookId.
+     */
+    @PostMapping("/create-return")
+    @ResponseStatus(HttpStatus.OK)
+    public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition) {
+        notificationService.returnBook(bookId, returnedInBadCondition);
+        return "Book Returned";
+    }
+
+
 
 }
