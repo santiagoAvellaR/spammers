@@ -9,9 +9,10 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
-@Builder
+
 @Entity
 @Table(name="Fines")
+@Builder
 @Getter
 public class FineModel {
     @Id
@@ -32,4 +33,7 @@ public class FineModel {
 
     @Column(name="fineStatus", nullable = false)
     private FineStatus fineStatus;
+
+    public FineModel() {
+    }
 }
