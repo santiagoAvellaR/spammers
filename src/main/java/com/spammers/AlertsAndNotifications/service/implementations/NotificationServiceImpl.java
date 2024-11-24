@@ -74,6 +74,20 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    /**
+     * Opens a new fine for a specific loan and notifies the associated user.
+     *
+     * This method creates a new fine for the specified loan, sends a notification
+     * to the user, and triggers an email alert with the fine details. The fine is
+     * saved with a status of {@link FineStatus#PENDING}.
+     *
+     * @param loanId      The unique identifier of the loan associated with the fine.
+     *                    The parameter should be of type {@link String}.
+     * @param description A description of the fine. The parameter should not exceed 300 characters.
+     * @param amount      The amount to be charged for the fine. Should be of type {@link Float}.
+     * @param email       The email address of the user to be notified about the fine.
+     *                    The parameter should be of type {@link String}.
+     */
     @Override
     public void openFine(String loanId, String description, float amount, String email) {
         Optional<LoanModel> loanOptional = loanRepository.findByLoanId(loanId);
@@ -88,6 +102,16 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    /**
+     * Closes an existing fine by updating its status to {@link FineStatus#PAID}.
+     *
+     * This method finds the fine by its unique identifier and updates its status
+     * to indicate that it has been paid. If no fine is found with the given ID,
+     * the method does nothing.
+     *
+     * @param fineId The unique identifier of the fine to be closed.
+     *               The parameter should be of type {@link String}.
+     */
     @Override
     public void closeFine(String fineId) {
         Optional<FineModel> fineOptional = finesRepository.findById(fineId);
