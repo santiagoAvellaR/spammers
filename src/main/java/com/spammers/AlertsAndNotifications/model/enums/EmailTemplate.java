@@ -44,6 +44,21 @@ public enum EmailTemplate {
             
             Este es un mensaje automático. No responder a este mensaje.
             """
+    ),
+    BOOK_RETURN(
+            "Devolución de un libro - BibloSoft",
+            """
+            Buen día, %s:
+            
+            Le informamos que el estudiante %s ha realizado la devolución de un libro que tomó prestado el día %s.
+            %s%s
+    
+            Gracias,
+            Cordial saludo.
+            
+            Este es el gestor de notificaciones de BibloSoft.
+            No responder a este mensaje ya que es enviado por un motor de notificaciones automáticas.
+            """
     );
 
     private final String subject;

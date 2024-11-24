@@ -27,6 +27,8 @@ import java.util.List;
 
 import java.util.Optional;
 
+
+
 /**
  * This service provides the Notifications features, in order to handle the
  * possible notifications to the user's guardian and handle Fines.
@@ -42,6 +44,8 @@ public class NotificationServiceImpl implements NotificationService {
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
     private final ApiClient apiClient;
+    private int page = 0;
+
 
     @Scheduled(cron = "0 30 8 * * ?")
     private void checkLoans(){
@@ -53,100 +57,98 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private int page = 0;
-
-
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
-     * @param idBook the id of the book borrowed.
-     * @param loan the loan DTO Object
-     * @param email the parent email to send the notification.
-     * @param fineRate the fine rate per day, in case the loan expires.
+     * @param loanDTO The Loan DTO to create and send the notification.
+     * @throws SpammersPublicExceptions If there is any problem with your
+     * @throws SpammersPrivateExceptions
      */
     @Override
-    public void createLoan(String idBook, LoanDTO loan, String email, float fineRate) throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        if(validate(fineRate)) throw new SpammersPublicExceptions(SpammersPublicExceptions.WRONG_FINE_RATE);
-        NotificationModel notification = new NotificationModel(loan.getUserId(), email,loan.getLoanExpired());
-        LoanModel loanM = new LoanModel(loan.getUserId(),loan.getBookId(),loan.getLoanDate(),loan.getLoanExpired(),loan.getStatus());
+    public void notifyLoan(LoanDTO loanDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        String email = loanDTO.getEmailGuardian();
+        LocalDate returnDate = loanDTO.getLoanReturn();
+
+        NotificationModel notification = new NotificationModel(loanDTO.getUserId(), email,returnDate);
+        LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
+
         notificationRepository.save(notification);
         loanRepository.save(loanM);
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+loan.getLoanExpired());
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate);
     }
 
     /**
      * This method closes a loan if it has not a fine associated with PENDING status.
-     * @param idLoan the Loan id.
+     * @param bookId the Loan id.
+     * @param userId The User id.
      * @throws SpammersPublicExceptions If loan is not found in the Database
      * @throws SpammersPrivateExceptions If the Loan has a current fine with PENDING status
      */
     @Override
-    public void closeLoan(String idLoan) throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        Optional<LoanModel> loan  = loanRepository.findById(idLoan);
+    public void closeLoan(String bookId, String userId) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> loan  = loanRepository.findLoanByUserAndBookId(userId,bookId);
         if(loan.isEmpty()) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
-        List<FineModel> fines  = finesRepository.findByLoanId(idLoan);
+        List<FineModel> fines  = finesRepository.findByLoanId(loan.get().getLoanId());
         if(fines.isEmpty() || pendingFine(fines)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
         loanRepository.delete(loan.get());
     }
 
-    private boolean pendingFine(List<FineModel> fines) {
-        boolean pending = false;
-        for (FineModel fine : fines) {
-            if(fine.getFineStatus().equals(FineStatus.PENDING)){
-                pending = true;
-                break;
-            }
+    @Override
+    public List<FineModel> getFines(String userId) {
+        return List.of();
+    }
+
+    @Override
+    public List<NotificationModel> getNotifications(String userId) {
+        return List.of();
+    }
+
+
+
+    @Override
+    public void returnBook(String bookId, boolean returnedInBadCondition) {
+        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, returnedInBadCondition);
+        if(loanModel.isEmpty()){
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
-        return pending;
-    }
-
-    @Override
-    public void closeFine(String idLoan) {
-
-    }
-
-    @Override
-    public void returnBook(LoanDTO loan, boolean returnedInBadCondition) {
-        UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-        LocalDate dateLoan = loan.getLoanDate();
-        DateTimeFormatter formatter  = DateTimeFormatter.ofPattern("dd MMMM yyyy");
-        String formatteDate = dateLoan.format(formatter);
-        int days = daysDifference(loan.getLoanExpired());
-        String emailBody = buildEmailBody(formatteDate, userInfo.getGuardianEmail(), userInfo.getName(), loan.getStatus(), returnedInBadCondition, days);
+        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
+        int days = daysDifference(loanModel.get().getLoanDate());
+        String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
     }
-    private int daysDifference(LocalDate deadline){
-        return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
-    }
-    private String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay){
-        String emailbody = "Buen dia, " + guardianName + "le informamos que el dia de hoy el estudiante " + studentName + "\n" +
-                " ha hecho la devolución de un libro que tomo a préstamo el dia " + loanDate + ",\n";
-        if(!statusLoan){
-            emailbody += "sin embargo tuvo un retraso de " + delay + " dias";
-        }
-        if(badCondition){
-            emailbody += "el libro se devolvio en malas condicones.\n";
-        }
-        emailbody += "Gracias,\nCordial Saludo.\nEste es el gestor de notificaciones de Biblosoft\n";
-        emailbody += "No responder a esta cuenta de correo ya que es enviada por un motor de notificaciones automáticas.";
-        return emailbody;
-    }
-
-
     /**
      * This method sendEmails every 10 minutes between 10 - 12 Monday to Friday.
      * With Pagination of the Query for better performance.
      */
     @Scheduled(cron = "0 */10 10-12 * * MON-FRI")
-    public void checkLoansThreeDays(){
+    private void checkLoansThreeDays(){
         processEmails();
         page = page > 18 ? 0 : page+1;
     }
 
+    private int daysDifference(LocalDate deadline){
+        return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
+    }
     private void processEmails(){
         List<LoanModel> loans = fetchEmailsToSend();
         for(LoanModel loan : loans){
             sendEmail(loan);
         }
+    }
+
+    private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
+
+        String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
+        String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
+
+
+        return String.format(
+                EmailTemplate.BOOK_RETURN.getTemplate(),
+                guardianName,
+                studentName,
+                loanDate,
+                delayMessage,
+                conditionMessage
+        );
     }
 
     private void sendEmail(LoanModel loan) {
@@ -161,9 +163,15 @@ public class NotificationServiceImpl implements NotificationService {
         return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now(),pageable);
     }
 
-    private boolean validate(float fineRate) {
-        return fineRate <= 0;
+
+    private boolean pendingFine(List<FineModel> fines) {
+        boolean pending = false;
+        for (FineModel fine : fines) {
+            if(fine.getFineStatus().equals(FineStatus.PENDING)){
+                pending = true;
+                break;
+            }
+        }
+        return pending;
     }
-
 }
-

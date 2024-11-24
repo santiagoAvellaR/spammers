@@ -31,18 +31,28 @@ public class LoanModel {
     @Column(name = "loanDate", nullable = false)
     private LocalDate loanDate;
 
+    @Column(name="bookName", nullable = false)
+    private String bookName;
+
     @Column(name = "loanExpired", nullable = false)
     private LocalDate loanExpired;
 
     @Column(name="status", nullable=false)
     private boolean status;
 
-    public LoanModel(String userId, String bookId, LocalDate loanDate, LocalDate loanExpired, boolean status) {
+    @Column(name="bookReturned", nullable = false)
+    private boolean bookReturned;
+
+    public LoanModel(String userId, String bookId, LocalDate loanDate, String bookName,LocalDate loanExpired, boolean status) {
         this.userId = userId;
         this.bookId = bookId;
         this.loanDate = loanDate;
         this.loanExpired = loanExpired;
         this.status = status;
+        this.bookName = bookName;
+    }
+    public boolean getStatus() {
+        return status;
     }
 }
 
