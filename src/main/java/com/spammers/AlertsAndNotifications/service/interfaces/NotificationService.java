@@ -5,6 +5,7 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
+import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import java.time.LocalDate;
 import java.util.List;

@@ -1,5 +1,6 @@
 package com.spammers.AlertsAndNotifications.model;
 
+import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,12 @@ public class NotificationModel {
 
     @Column(name="sentDate", nullable = true)
     private LocalDate sentDate;
-
-    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate) {
+    @Column(name="sentDate", nullable = false)
+    private NotificationType notificationType;
+    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type) {
         this.studentId = studentId;
         this.emailGuardian = emailGuardian;
         this.sentDate = sendDate;
+        this.notificationType = type;
     }
 }

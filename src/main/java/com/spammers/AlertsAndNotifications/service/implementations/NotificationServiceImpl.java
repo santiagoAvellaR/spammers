@@ -9,11 +9,11 @@ import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
+import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -44,18 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final ApiClient apiClient;
     private final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
-    private int page = 0;
-    }
 
-    @Scheduled(cron = "0 30 8 * * ?")
-    private void checkLoans(){
-        Pageable pageable = PageRequest.of(page, 15);
-        List<LoanModel> loans = loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3), pageable);
-        for(LoanModel loan : loans){
-
-            //emailService.sendEmail(loan.getLoanId(), );
-        }
-    }
 
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
@@ -68,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
 
-        NotificationModel notification = new NotificationModel(loanDTO.getUserId(), email,returnDate);
+        NotificationModel notification = new NotificationModel(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN);
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
 
         notificationRepository.save(notification);
@@ -93,7 +82,7 @@ public class NotificationServiceImpl implements NotificationService {
         String email = apiClient.getUserInfoById(userId).getGuardianEmail();
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Devolución de libro: "+loan.get().getBookName() +
                 " \nFecha: "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now());
+        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now(), NotificationType.BOOK_LOAN_RETURNED);
         notificationRepository.save(notificationModel);
     }
 
@@ -134,9 +123,9 @@ public class NotificationServiceImpl implements NotificationService {
         if (loanOptional.isPresent()) {
             LoanModel loan = loanOptional.get();
             LocalDate currentDate = LocalDate.now();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate);
+            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
             notificationRepository.save(notification);
-            FineModel fineModel = FineModel.builder().loanId(loanId).description(description).amount(amount).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(amount).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
             finesRepository.save(fineModel);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", amount, currentDate, description);
         }
@@ -155,49 +144,31 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void closeFine(String fineId) {
         Optional<FineModel> fineOptional = finesRepository.findById(fineId);
-        if(fineOptional.isPresent()){
+        if (fineOptional.isPresent()) {
             finesRepository.updateFineStatus(fineId, FineStatus.PAID);
             FineModel fineModel = fineOptional.get();
-            Optional<LoanModel> loanOptional = loanRepository.findByLoanId(fineModel.getLoanId());
-            if(loanOptional.isPresent()){
-                LoanModel loan = loanOptional.get();
-                LocalDate currentDate = LocalDate.now();
-                UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-                String email = userInfo.getGuardianEmail();
-                NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate);
-                notificationRepository.save(notification);
-                emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
-            }
+            LoanModel loan = fineModel.getLoan();
+            LocalDate currentDate = LocalDate.now();
+            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
+            String email = userInfo.getGuardianEmail();
+            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE_PAID);
+            notificationRepository.save(notification);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
         }
+    }
         
     public List<NotificationModel> getNotifications(String userId) {
         return List.of();
     }
-    /**
-     * This method sendEmails every 10 minutes between 10 - 12 Monday to Friday.
-     * With Pagination of the Query for better performance.
-     */
-    @Scheduled(cron = "0 */10 10-12 * * MON-FRI")
-    private void checkLoansThreeDays(){
-        processEmails();
-        page = page > 18 ? 0 : page+1;
-    }
+
 
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }
-    private void processEmails(){
-        List<LoanModel> loans = fetchEmailsToSend();
-        for(LoanModel loan : loans){
-            sendEmail(loan);
-        }
-    }
-
     private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
 
         String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
         String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
-
 
         return String.format(
                 EmailTemplate.BOOK_RETURN.getTemplate(),
@@ -207,20 +178,6 @@ public class NotificationServiceImpl implements NotificationService {
                 delayMessage,
                 conditionMessage
         );
-    }
-
-    private void sendEmail(LoanModel loan) {
-        UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-        emailService.sendEmailTemplate(userInfo.getGuardianEmail(),EmailTemplate.NOTIFICATION_ALERT
-                ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
-        NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail(),LocalDate.now());
-        notificationRepository.save(notificationModel);
-    }
-
-    private List<LoanModel> fetchEmailsToSend(){
-        int pageSize = 15;
-        Pageable pageable = PageRequest.of(page, pageSize);
-        return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now(),pageable);
     }
 
 
