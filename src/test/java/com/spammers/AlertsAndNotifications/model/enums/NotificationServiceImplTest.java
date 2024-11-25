@@ -46,4 +46,5 @@ class NotificationServiceImplTest {
         assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
         verify(loanRepository, times(1)).findLoanByBookIdAndBookReturned(bookId, false);
     }
+
 }
