@@ -33,7 +33,13 @@
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<!-- Excluding controller classes for analysis with SonarQube -->
 		<!-- Excluding default application class, and the exception classes-->
-		<sonar.coverage.exclusions>**/com/spammers/AlertsAndNotifications/exceptions/*,**/com/spammers/AlertsAndNotifications/model/*, **/com/spammers/AlertsAndNotifications/controller/*,**/com/spammers/AlertsAndNotifications/Application.java,**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.java</sonar.coverage.exclusions>
+		<sonar.coverage.exclusions>**/com/spammers/AlertsAndNotifications/exceptions/*,
+			**/com/spammers/AlertsAndNotifications/model/*, **/com/spammers/AlertsAndNotifications/controller/*,
+			**/com/spammers/AlertsAndNotifications/Application.java,
+			**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.java,
+			**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.java,
+			**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.class
+		</sonar.coverage.exclusions>
 
 	</properties>
 	<dependencies>
@@ -136,8 +142,10 @@
 								<exclude>**/com/spammers/AlertsAndNotifications/Application.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/exceptions/*</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/controller/*</exclude>
-								<exclude>**/com/spammers/AlertsAndNotifications/model/*</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/model/**</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.class</exclude>
 							</excludes>
 						</configuration>
 					</execution>
