@@ -3,14 +3,17 @@ package com.spammers.AlertsAndNotifications.model;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
+
 @Entity
 @Table(name="Fines")
-@RequiredArgsConstructor
+@Builder
 @Getter
 public class FineModel {
     @Id
@@ -32,7 +35,10 @@ public class FineModel {
 
     @Column(name="fineStatus", nullable = false)
     private FineStatus fineStatus;
-
+  
     @Column(name="fineType", nullable = false)
     private FineType fineType;
+  
+    public FineModel() {
+    }
 }
