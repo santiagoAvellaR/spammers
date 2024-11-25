@@ -15,6 +15,7 @@ import java.time.LocalDate;
 @Table(name="Fines")
 @Builder
 @Getter
+@AllArgsConstructor
 public class FineModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
