@@ -73,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(notification);
         loanRepository.save(loanM);
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate);
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
     /**
@@ -88,8 +88,26 @@ public class NotificationServiceImpl implements NotificationService {
         Optional<LoanModel> loan  = loanRepository.findLoanByUserAndBookId(userId,bookId);
         if(loan.isEmpty()) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         List<FineModel> fines  = finesRepository.findByLoanId(loan.get().getLoanId());
-        if(fines.isEmpty() || pendingFine(fines)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
+        if(!fines.isEmpty() && pendingFine(fines)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
         loanRepository.delete(loan.get());
+        String email = apiClient.getUserInfoById(userId).getGuardianEmail();
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Devolución de libro: "+loan.get().getBookName() +
+                " \nFecha: "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now());
+        notificationRepository.save(notificationModel);
+    }
+
+    @Override
+    public void returnBook(String bookId, boolean returnedInBadCondition) {
+        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, returnedInBadCondition);
+        if(loanModel.isEmpty()){
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
+        }
+        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
+        int days = daysDifference(loanModel.get().getLoanDate());
+        String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
+        emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
     }
 
     @Override
@@ -100,20 +118,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<NotificationModel> getNotifications(String userId) {
         return List.of();
-    }
-
-
-
-    @Override
-    public void returnBook(String bookId, boolean returnedInBadCondition) {
-        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, returnedInBadCondition);
-        if(loanModel.isEmpty()){
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
-        }
-        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
-        int days = daysDifference(loanModel.get().getLoanDate());
-        String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
-        emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
     }
     /**
      * This method sendEmails every 10 minutes between 10 - 12 Monday to Friday.
@@ -155,6 +159,8 @@ public class NotificationServiceImpl implements NotificationService {
         UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
         emailService.sendEmailTemplate(userInfo.getGuardianEmail(),EmailTemplate.NOTIFICATION_ALERT
                 ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+        NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail(),LocalDate.now());
+        notificationRepository.save(notificationModel);
     }
 
     private List<LoanModel> fetchEmailsToSend(){
