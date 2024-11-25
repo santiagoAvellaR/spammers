@@ -50,6 +50,7 @@ public class LoanModel {
         this.loanExpired = loanExpired;
         this.status = status;
         this.bookName = bookName;
+        this.bookReturned = false;
     }
     public boolean getStatus() {
         return status;

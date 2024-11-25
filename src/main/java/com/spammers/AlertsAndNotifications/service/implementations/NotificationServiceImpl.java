@@ -87,7 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public void returnBook(String bookId, boolean returnedInBadCondition) {
-        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, returnedInBadCondition);
+        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
@@ -96,6 +96,8 @@ public class NotificationServiceImpl implements NotificationService {
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
+        loanModel.get().setBookReturned(true);
+        loanRepository.save(loanModel.get());
     }
 
     @Override

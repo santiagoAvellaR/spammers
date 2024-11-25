@@ -11,17 +11,17 @@ public enum EmailTemplate {
             "Nueva Notificación - BibloSoft.",
             """
             Hola!,
-                   \s
+                   
             Tienes una nueva notificación:
             %s
-                   \s
+                   
             Para más detalles, ingresa a tu cuenta.
-                   \s
+                   
             Saludos,
             El equipo de BibloSoft.
-           \s
+           
             Este es un mensaje automático. No responder a este mensaje.
-           \s"""
+            """
     ),
 
     /**
@@ -30,20 +30,20 @@ public enum EmailTemplate {
     FINE_ALERT(
             "Alerta de Multa - BibloSoft.",
             """
-            Hola!,
-                   \s
-            %s
-            Monto: %s
-            Fecha: %s
-            Descripción: %s
-                   \s
-            Por favor, revisa los detalles en tu cuenta.
-                   \s
-            Atentamente,
-            El equipo de BibloSoft.
-           \s
-            Este es un mensaje automático. No responder a este mensaje.
-           \s"""
+           Hola!,
+                   
+           %s
+           Monto: %s
+           Fecha: %s
+           Descripción: %s
+                   
+           Por favor, revisa los detalles en tu cuenta.
+                   
+           Atentamente,
+           El equipo de BibloSoft.
+           
+           Este es un mensaje automático. No responder a este mensaje.
+           """
     ),
   
     BOOK_RETURN(
