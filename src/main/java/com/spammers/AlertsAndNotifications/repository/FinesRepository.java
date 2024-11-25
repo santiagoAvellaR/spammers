@@ -2,6 +2,7 @@ package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
+import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -54,4 +55,10 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
     @Modifying
     @Query("UPDATE FineModel f  SET f.fineStatus = :newStatus WHERE f.fineId = :fineId")
     void updateFineStatus(@Param("fineId") String fineId, @Param("newStatus") FineStatus newStatus);
+
+    @Query("SELECT l FROM FineModel l WHERE l.fineType = :givenFineType")
+    List<FineModel> findByFineType(@Param("givenFineType") FineType givenFineType);
+
+    @Query("SELECT f FROM FineModel f WHERE f.loan.loanId = :givenLoanId")
+    List<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
 }

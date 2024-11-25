@@ -24,8 +24,8 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
      * @param pageable    The pagination details, such as page number and size.
      * @return A list of LoanModel objects that have expired before the given current date.
      */
-    @Query("SELECT l FROM LoanModel l WHERE l.loanExpired < :currentDate")
-    List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDateTime currentDate, Pageable pageable);
+    @Query("SELECT l FROM LoanModel l WHERE l.loanExpired < :currentDate AND l.status = true")
+    List<LoanModel> findExpiredLoans(@Param("currentDate") LocalDate currentDate, Pageable pageable);
 
     /**
      * Finds all loans that are expiring exactly on the specified date.
@@ -37,7 +37,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
      * @return A list of LoanModel objects that are expiring on the specified date.
      */
     @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
-    List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays);
+    List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays,Pageable pageable);
 
     /**
      * Finds a loan by its loan ID.
@@ -49,4 +49,10 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
      * @return An Optional containing the LoanModel object if found, otherwise an empty Optional.
      */
     Optional<LoanModel> findByLoanId(String loanId);
+    
+    @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId AND l.bookId = :givenBookId")
+    Optional<LoanModel> findLoanByUserAndBookId(@Param("givenUserId") String givenUserId, @Param("givenBookId") String givenBookId);
+  
+    @Query("SELECT l FROM LoanModel l WHERE l.bookId = :givenBookId AND l.bookReturned = :bookReturned")
+    Optional<LoanModel> findLoanByBookIdAndBookReturned(@Param("givenBookId") String givenBookId, @Param("bookReturned") boolean bookReturned);
 }
