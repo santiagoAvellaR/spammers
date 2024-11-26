@@ -1,5 +1,5 @@
 package com.spammers.AlertsAndNotifications.model.enums;
-
+import com.spammers.AlertsAndNotifications.service.implementations.NotificationServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
