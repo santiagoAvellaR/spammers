@@ -20,9 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.web.client.RestClient;
+
+import java.lang.reflect.Method;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,16 +104,58 @@ class NotificationServiceImplTest {
         }
     }
     @Test
-    void testReturnBookThrowsExceptionWhenLoanNotFound() {
-        String bookId = "12345";
+    void returnBook() {
+        String bookId = "book-1";
+        boolean returnedInBadCondition = false;
+        LoanModel loan = new LoanModel("user-1", bookId,
+                LocalDate.now().minusDays(3), "Boulevard",
+                LocalDate.now().plusDays(4), true);
+
+        UserInfo userInfo = new UserInfo("user-1", "Guardian Name", "example@outlook.com");
+
+        // findLoanByBookIdAndBookReturned method --> return the loan
+        when(loanRepository.findLoanByBookIdAndBookReturned(bookId, false))
+                .thenReturn(Optional.of(loan));
+
+        // getUserInfoById method --> return userInfo
+        when(apiClient.getUserInfoById(loan.getUserId()))
+                .thenReturn(userInfo);
+
+        // Access private methods using reflection
+        NotificationServiceImpl spyService = spy(notificationService);
+
+        // Use reflection to invoke private methods and get their results
+        int days = invokePrivateMethod(spyService, "daysDifference", LocalDate.class, loan.getLoanDate());
+        String emailBody = invokePrivateMethod(spyService, "buildEmailBody",
+                new Class<?>[] {String.class, String.class, String.class, boolean.class, boolean.class, int.class},
+                loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                userInfo.getGuardianEmail(), userInfo.getName(), loan.getStatus(), returnedInBadCondition, days);
+        spyService.returnBook(bookId, returnedInBadCondition);
+
+        // Check loan was updated and saved
+        verify(loanRepository, times(1)).save(loan);
+        assertTrue(loan.isBookReturned());
+
+        // Check email was sent
+        verify(emailService, times(1)).sendEmailCustomised(
+                eq(userInfo.getGuardianEmail()),
+                eq("Devolución de un libro"),
+                eq(emailBody)
+        );
+    }
+
+    @Test
+    void returnBookThrowsExceptionWhenLoanNotFound() {
+        String bookId = "book-1";
+        //findLoanByBookIdAndBookReturned method --> return empty
         when(loanRepository.findLoanByBookIdAndBookReturned(bookId, false))
                 .thenReturn(Optional.empty());
         SpammersPrivateExceptions exception = assertThrows(
-                SpammersPrivateExceptions.class,
-                () -> notificationService.returnBook(bookId, false)
-        );
+                SpammersPrivateExceptions.class, () -> notificationService.returnBook(bookId, false));
+
         assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
-        verify(loanRepository, times(1)).findLoanByBookIdAndBookReturned(bookId, false);
+        verify(loanRepository, never()).save(any());
+        verify(emailService, never()).sendEmailCustomised(any(), any(), any());
     }
 
     @Test
@@ -150,6 +193,7 @@ class NotificationServiceImplTest {
             assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
         }
     }
+
     @Test
     void closeFine() {
 
@@ -183,7 +227,6 @@ class NotificationServiceImplTest {
         assertEquals(NotificationType.FINE_PAID, savedNotification.getNotificationType());
         assertEquals("example@outlook.com", savedNotification.getEmailGuardian());
     }
-
 
     @Test
     void closeFineThrowsExceptionFineNotFound() {
@@ -516,4 +559,25 @@ class NotificationServiceImplTest {
         return notifications;
     }
 
+
+    private <T> T invokePrivateMethod(Object obj, String methodName, Class<?> paramType, Object... args) {
+        try {
+            Method method = obj.getClass().getDeclaredMethod(methodName, paramType);
+            method.setAccessible(true);
+            return (T) method.invoke(obj, args);
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking private method", e);
+        }
+    }
+
+    // Overloaded method to handle multiple parameter types
+    private <T> T invokePrivateMethod(Object obj, String methodName, Class<?>[] paramTypes, Object... args) {
+        try {
+            Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
+            method.setAccessible(true);
+            return (T) method.invoke(obj, args);
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking private method", e);
+        }
+    }
 }
