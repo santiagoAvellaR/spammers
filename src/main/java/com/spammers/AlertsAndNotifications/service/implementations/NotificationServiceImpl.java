@@ -17,14 +17,15 @@ import com.spammers.AlertsAndNotifications.service.interfaces.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,7 +103,23 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<FineModel> getFines(String userId) {
-        return List.of();
+        int pageSize = 15;
+        int pageNumber = 0;
+        return processLoans(userId,pageSize,pageNumber);
+    }
+
+    private List<FineModel> processLoans(String userId, int pageSize, int pageNumber){
+        List<FineModel> fines = new ArrayList<>();
+        Page<LoanModel> page;
+        do{
+            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+            page = loanRepository.findByUserId(userId, pageRequest);
+            for(LoanModel loan: page.getContent()){
+                fines.addAll(loan.getFines());
+            }
+            pageNumber++;
+        } while(page.hasNext());
+        return fines;
     }
 
     /**
@@ -130,6 +147,8 @@ public class NotificationServiceImpl implements NotificationService {
             FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(amount).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
             finesRepository.save(fineModel);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", amount, currentDate, description);
+        } else{
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
     }
 
@@ -156,11 +175,27 @@ public class NotificationServiceImpl implements NotificationService {
             NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE_PAID);
             notificationRepository.save(notification);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
+        } else{
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND);
         }
     }
         
     public List<NotificationModel> getNotifications(String userId) {
-        return List.of();
+        int pageSize = 15;
+        int pageNumber = 0;
+        return processNotifications(userId,pageSize,pageNumber);
+    }
+
+    private List<NotificationModel> processNotifications(String userId,int pageSize,int pageNumber){
+        List<NotificationModel> notifications = new ArrayList<>();
+        Page<NotificationModel> page;
+        do {
+            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+            page = notificationRepository.findByUserId(userId, pageRequest);
+            notifications.addAll(page.getContent());
+            pageNumber++;
+        } while (page.hasNext());
+        return notifications;
     }
 
 
