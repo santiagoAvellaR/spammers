@@ -179,7 +179,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND);
         }
     }
-        
+    @Override
     public List<NotificationModel> getNotifications(String userId) {
         int pageSize = 15;
         int pageNumber = 0;

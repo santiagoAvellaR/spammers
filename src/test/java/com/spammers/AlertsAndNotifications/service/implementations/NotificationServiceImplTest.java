@@ -279,12 +279,11 @@ class NotificationServiceImplTest {
 
     @Test
     void getFines() {
-        // Arrange
         String userId = "user-1";
         int pageSize = 15;
         int pageNumber = 0;
 
-        // Crear préstamos con multas
+        // Create some loans
         LoanModel loan1 = new LoanModel("user-1", "book-1",
                 LocalDate.now().minusDays(10), "Book 1",
                 LocalDate.now().minusDays(5), true);
@@ -293,7 +292,7 @@ class NotificationServiceImplTest {
                 LocalDate.now().minusDays(15), "Book 2",
                 LocalDate.now().minusDays(8), true);
 
-        // Crear multas para los préstamos
+        // create some fines
         FineModel fine1 = new FineModel("fine-1", loan1, "Late return", 5000f,
                 LocalDate.now().minusDays(5), FineStatus.PENDING, FineType.RETARDMENT);
 
@@ -303,40 +302,34 @@ class NotificationServiceImplTest {
         loan1.setFines(Collections.singletonList(fine1));
         loan2.setFines(Collections.singletonList(fine2));
 
-        // Crear una página de préstamos
+        // Create a page for loans:
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
         Page<LoanModel> loanPage = new PageImpl<>(Arrays.asList(loan1, loan2), pageRequest, 2);
 
-        // Mock the findByUserId method to return the page of loans
+        // findByUserId method --> return the page of loans
         when(loanRepository.findByUserId(userId, pageRequest))
                 .thenReturn(loanPage);
-
-        // Act
         List<FineModel> resultFines = notificationService.getFines(userId);
 
-        // Assert
-        // Verify the correct number of fines are returned
+        // Check the correct number of fines are returned
         assertEquals(2, resultFines.size());
 
-        // Verify the details of the returned fines
+        // Check data of the fines
         assertTrue(resultFines.contains(fine1));
         assertTrue(resultFines.contains(fine2));
 
-        // Verify that the repository method was called with correct parameters
+        // Check the repository method was called with correct parameters
         verify(loanRepository, times(1)).findByUserId(userId, pageRequest);
     }
 
     @Test
     void getFinesWithMultiplePages() {
-        // Arrange
         String userId = "user-1";
         int pageSize = 15;
-
-        // Crear préstamos con multas para múltiples páginas
         List<LoanModel> loansPage1 = new ArrayList<>();
         List<LoanModel> loansPage2 = new ArrayList<>();
 
-        // Crear préstamos y multas para la primera página
+        // Create loans and fines first page (15 rows)
         for (int i = 0; i < 15; i++) {
             LoanModel loan = new LoanModel("user-1", "book-" + i,
                     LocalDate.now().minusDays(10 + i), "Book " + i,
@@ -349,7 +342,7 @@ class NotificationServiceImplTest {
             loansPage1.add(loan);
         }
 
-        // Crear préstamos y multas para la segunda página
+        // Create loans second page (10 rows)
         for (int i = 0; i < 10; i++) {
             LoanModel loan = new LoanModel("user-1", "book-" + (i + 15),
                     LocalDate.now().minusDays(25 + i), "Book " + (i + 15),
@@ -361,79 +354,166 @@ class NotificationServiceImplTest {
             loan.setFines(Collections.singletonList(fine));
             loansPage2.add(loan);
         }
-
-        // Simular páginas
+        // Simulate pages
         PageRequest pageRequest1 = PageRequest.of(0, pageSize);
         PageRequest pageRequest2 = PageRequest.of(1, pageSize);
 
         Page<LoanModel> loanPage1 = new PageImpl<>(loansPage1, pageRequest1, 25);
         Page<LoanModel> loanPage2 = new PageImpl<>(loansPage2, pageRequest2, 25);
 
-        // Mock the findByUserId method to return pages of loans
+        // findByUserId method --> return pages of loans
         when(loanRepository.findByUserId(userId, pageRequest1))
                 .thenReturn(loanPage1);
         when(loanRepository.findByUserId(userId, pageRequest2))
                 .thenReturn(loanPage2);
-
-        // Act
         List<FineModel> resultFines = notificationService.getFines(userId);
 
-        // Assert
-        // Verificar que se recuperaron todas las multas de ambas páginas
+        // Check all fines returned from the pages.
         assertEquals(25, resultFines.size());
 
-        // Verificar que todas las multas de la primera página están en el resultado
+        // Check all fines from first page
         assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-0")));
         assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-14")));
 
-        // Verificar que todas las multas de la segunda página están en el resultado
+        // Check all fines from second page
         assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-15")));
         assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-24")));
 
-        // Verificar que se llamó al método del repositorio para ambas páginas
+        // check the method was called just one time per page.
         verify(loanRepository, times(1)).findByUserId(userId, pageRequest1);
         verify(loanRepository, times(1)).findByUserId(userId, pageRequest2);
     }
 
     @Test
     void getFinesNoFines() {
-        // Arrange
         String userId = "user-1";
         int pageSize = 15;
         int pageNumber = 0;
-
-        // Crear una página de préstamos sin multas
+        // Check page with no fines
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
         LoanModel loan1 = new LoanModel("user-1", "book-1",
-                LocalDate.now().minusDays(10), "Book 1",
-                LocalDate.now().minusDays(5), true);
+                LocalDate.now().minusDays(10), "Book 1", LocalDate.now().minusDays(5), true);
         loan1.setFines(Collections.emptyList());
 
         LoanModel loan2 = new LoanModel("user-1", "book-2",
-                LocalDate.now().minusDays(15), "Book 2",
-                LocalDate.now().minusDays(8), true);
+                LocalDate.now().minusDays(15), "Book 2", LocalDate.now().minusDays(8), true);
         loan2.setFines(Collections.emptyList());
 
         Page<LoanModel> loanPage = new PageImpl<>(Arrays.asList(loan1, loan2), pageRequest, 2);
 
-        // Mock the findByUserId method to return the page of loans
+        // findByUserId method --> return the page of loans
         when(loanRepository.findByUserId(userId, pageRequest))
                 .thenReturn(loanPage);
-
-        // Act
         List<FineModel> resultFines = notificationService.getFines(userId);
 
-        // Assert
-        // Verificar que no se devuelven multas
+        // Check there are not fines
         assertTrue(resultFines.isEmpty());
 
-        // Verificar que se llamó al método del repositorio
+        // Check the repository was called just one time cause, there were no fines.
         verify(loanRepository, times(1)).findByUserId(userId, pageRequest);
     }
 
     @Test
-    void getNotifications(){
+    void getNotifications() {
+        String userId = "user-1";
+        List<NotificationModel> mockNotifications = createMockNotifications(userId);
+        int pageSize = 15;
+        // Create pages
+        Page<NotificationModel> firstPage = new PageImpl<>(
+                mockNotifications.subList(0, Math.min(pageSize, mockNotifications.size())),
+                PageRequest.of(0, pageSize),
+                mockNotifications.size()
+        );
 
+        // findByUserId --> return firstPage
+        when(notificationRepository.findByUserId(eq(userId), any(PageRequest.class)))
+                .thenReturn(firstPage);
+
+        List<NotificationModel> retrievedNotifications = notificationService.getNotifications(userId);
+        // Check we got all the notifications created
+        assertEquals(mockNotifications.size(), retrievedNotifications.size());
+        for (int i = 0; i < mockNotifications.size(); i++) {
+            assertEquals(mockNotifications.get(i), retrievedNotifications.get(i));
+        }
+        // Check the repository was called 1 time, cause there are 15 (1 page)
+        verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
+    }
+
+    @Test
+    void getNotificationsWithMultiplePages() {
+        String userId = "user-1";
+        int pageSize = 15;
+        List<NotificationModel> mockNotifications = createMockNotifications(userId, 35);
+        Page<NotificationModel> firstPage = new PageImpl<>(
+                mockNotifications.subList(0, pageSize),
+                PageRequest.of(0, pageSize),
+                mockNotifications.size()
+        );
+
+        Page<NotificationModel> secondPage = new PageImpl<>(
+                mockNotifications.subList(pageSize, 2 * pageSize),
+                PageRequest.of(1, pageSize),
+                mockNotifications.size()
+        );
+
+        Page<NotificationModel> thirdPage = new PageImpl<>(
+                mockNotifications.subList(2 * pageSize, mockNotifications.size()),
+                PageRequest.of(2, pageSize),
+                mockNotifications.size()
+        );
+
+        // findByUser --> return respective page, because there are 35 notifications (3 pages)
+        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(0, pageSize))))
+                .thenReturn(firstPage);
+        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(1, pageSize))))
+                .thenReturn(secondPage);
+        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(2, pageSize))))
+                .thenReturn(thirdPage);
+
+        List<NotificationModel> retrievedNotifications = notificationService.getNotifications(userId);
+
+        // Check the number of all notifications
+        assertEquals(mockNotifications.size(), retrievedNotifications.size());
+
+        // Check the notifications data.
+        for (int i = 0; i < mockNotifications.size(); i++) {
+            assertEquals(mockNotifications.get(i), retrievedNotifications.get(i));
+        }
+        // Check calls to repository (3 times because 3 pages)
+        verify(notificationRepository, times(3)).findByUserId(eq(userId), any(PageRequest.class));
+    }
+
+    @Test
+    void getNotificationsWithNoNotifications() {
+        String userId = "user-1";
+        int pageSize = 15;
+        Page<NotificationModel> emptyPage = Page.empty();
+        // findByUserId --> return emptyPage (because there are no notifications)
+        when(notificationRepository.findByUserId(eq(userId), any(PageRequest.class)))
+                .thenReturn(emptyPage);
+        List<NotificationModel> retrievedNotifications = notificationService.getNotifications(userId);
+        assertTrue(retrievedNotifications.isEmpty());
+
+        // Check calls to repository (the minimum calls, 1 because there are less than 15 notifications)
+        verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
+    }
+
+    private List<NotificationModel> createMockNotifications(String userId) {
+        return createMockNotifications(userId, 10);
+    }
+
+    private List<NotificationModel> createMockNotifications(String userId, int count) {
+        List<NotificationModel> notifications = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            NotificationModel notification = new NotificationModel(
+                    userId,
+                    "email-" + i + "@example.com",
+                    LocalDate.now().minusDays(i),
+                    NotificationType.values()[i % NotificationType.values().length]
+            );
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
 }
