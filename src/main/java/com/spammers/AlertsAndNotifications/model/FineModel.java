@@ -3,10 +3,7 @@ package com.spammers.AlertsAndNotifications.model;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -15,6 +12,7 @@ import java.time.LocalDate;
 @Table(name="Fines")
 @Builder
 @Getter
+@Setter
 @AllArgsConstructor
 public class FineModel {
     @Id

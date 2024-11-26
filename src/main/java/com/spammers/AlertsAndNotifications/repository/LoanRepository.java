@@ -2,16 +2,18 @@ package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
+@Repository
 public interface LoanRepository extends JpaRepository<LoanModel, String> {
 
     /**
@@ -55,4 +57,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
   
     @Query("SELECT l FROM LoanModel l WHERE l.bookId = :givenBookId AND l.bookReturned = :bookReturned")
     Optional<LoanModel> findLoanByBookIdAndBookReturned(@Param("givenBookId") String givenBookId, @Param("bookReturned") boolean bookReturned);
+
+    @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId")
+    Page<LoanModel> findByUserId(@Param("givenUserId") String givenUserId, Pageable pageable);
 }
