@@ -4,6 +4,7 @@ package com.spammers.AlertsAndNotifications.controller;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.NotificationDTO;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
@@ -28,9 +29,9 @@ public class SpammersController {
      * @param userId The user id
      * @return the notifications associated to the user.
      */
-    @GetMapping("/notifications")
+    @GetMapping("/user-notifications")
     @ResponseStatus(HttpStatus.OK)
-    public List<NotificationModel> getNotifications(@RequestParam String userId){
+    public List<NotificationDTO> getNotifications(@RequestParam String userId){
         return notificationService.getNotifications(userId);
     }
 

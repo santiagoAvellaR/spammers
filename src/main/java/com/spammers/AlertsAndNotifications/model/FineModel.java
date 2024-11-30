@@ -40,7 +40,7 @@ public class FineModel {
     @Column(name="fineType", nullable = false)
     private FineType fineType;
 
-    @OneToMany(mappedBy = "fine", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fine", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<FineNotification> fineNotifications = new ArrayList<>();
 
     public FineModel() {

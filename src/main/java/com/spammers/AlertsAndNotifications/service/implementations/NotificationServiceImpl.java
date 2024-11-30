@@ -14,6 +14,7 @@ import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +46,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
-    private final ApiClient apiClient;
+    private final ApiClient apiClient=new ApiClientLocal(RestClient.builder().build());
     private final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
 
@@ -58,11 +61,11 @@ public class NotificationServiceImpl implements NotificationService {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
 
-        NotificationModel notification = new NotificationModel(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN);
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
+        loanRepository.save(loanM);
+        NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM);
 
         notificationRepository.save(notification);
-        loanRepository.save(loanM);
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
@@ -180,21 +183,29 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
     @Override
-    public List<NotificationModel> getNotifications(String userId) {
+    public List<NotificationDTO> getNotifications(String userId) {
         int pageSize = 15;
         int pageNumber = 0;
         return processNotifications(userId,pageSize,pageNumber);
     }
 
-    private List<NotificationModel> processNotifications(String userId,int pageSize,int pageNumber){
-        List<NotificationModel> notifications = new ArrayList<>();
+    private List<NotificationDTO> processNotifications(String userId,int pageSize,int pageNumber){
+        List<NotificationDTO> notifications = new ArrayList<>();
         Page<NotificationModel> page;
         do {
             PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
             page = notificationRepository.findByUserId(userId, pageRequest);
-            notifications.addAll(page.getContent());
+            notifications.addAll(changeDTO(page.getContent()));
             pageNumber++;
         } while (page.hasNext());
+        return notifications;
+    }
+
+    private List<NotificationDTO> changeDTO(List<NotificationModel> content) {
+        List<NotificationDTO> notifications = new ArrayList<>();
+        for(NotificationModel model: content){
+            notifications.add(new NotificationDTO(model.getEmailGuardian(),model.getSentDate(),model.getNotificationType()));
+        }
         return notifications;
     }
 

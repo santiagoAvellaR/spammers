@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class LoanNotification extends NotificationModel {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "loanId", nullable = false)
     private LoanModel loan;
 

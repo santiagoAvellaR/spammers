@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.NotificationDTO;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,14 +32,14 @@ class SpammersControllerTest {
     @Test
     void testGetNotifications() {
         String userId = "user123";
-        List<NotificationModel> expectedNotifications = Arrays.asList(
-                new NotificationModel(),
-                new NotificationModel()
+        List<NotificationDTO> expectedNotifications = Arrays.asList(
+                new NotificationDTO(),
+                new NotificationDTO()
         );
 
         when(notificationService.getNotifications(userId))
                 .thenReturn(expectedNotifications);
-        List<NotificationModel> actualNotifications = spammersController.getNotifications(userId);
+        List<NotificationDTO> actualNotifications = spammersController.getNotifications(userId);
         assertNotNull(actualNotifications);
         assertEquals(expectedNotifications, actualNotifications);
         verify(notificationService).getNotifications(userId);

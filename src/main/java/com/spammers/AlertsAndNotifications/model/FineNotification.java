@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 @RequiredArgsConstructor
@@ -15,8 +17,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class FineNotification extends NotificationModel {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fineId", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "fineId", nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private FineModel fine;
 
     public FineNotification(String studentId, String emailGuardian, LocalDate sendDate, NotificationType notificationType, FineModel fine) {

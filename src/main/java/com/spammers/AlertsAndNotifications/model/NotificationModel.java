@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name="Notifications")
 @RequiredArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 public class NotificationModel {
     @Id
