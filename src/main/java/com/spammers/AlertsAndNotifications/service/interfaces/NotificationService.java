@@ -15,4 +15,6 @@ public interface NotificationService {
     void returnBook(String bookId, boolean returnedInBadCondition);
     void openFine(String loanId, String description, float amount, String email);
     void closeFine(String loanId);
+    List<FineModel> returnAllActiveFines(int pageSize, int pageNumber);
+    List<FineModel> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
 }

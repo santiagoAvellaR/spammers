@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -61,4 +63,12 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
 
     @Query("SELECT f FROM FineModel f WHERE f.loan.loanId = :givenLoanId")
     List<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
+
+    @Query("SELECT f FROM FineModel f WHERE f.fineStatus = :givenFineStatus")
+    List<FineModel> findByStatus(@Param("givenFineStatus") FineStatus givenFineStatus, Pageable pageable);
+
+
+    @Query("SELECT f FROM FineModel f WHERE FUNCTION('YEAR', f.expiredDate) = FUNCTION('YEAR', :givenDate) AND FUNCTION('MONTH', f.expiredDate) = FUNCTION('MONTH', :givenDate) AND f.fineStatus = :givenFineStatus")
+    List<FineModel> findByStatusAndDate(@Param("givenFineStatus") FineStatus givenFineStatus, @Param("givenDate") LocalDate givenDate, Pageable pageable);
+
 }

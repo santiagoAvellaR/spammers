@@ -209,10 +209,10 @@ public class NotificationServiceImpl implements NotificationService {
         return notifications;
     }
 
-
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }
+
     private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
 
         String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
@@ -228,7 +228,6 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 
-
     private boolean pendingFine(List<FineModel> fines) {
         boolean pending = false;
         for (FineModel fine : fines) {
@@ -238,5 +237,15 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return pending;
+    }
+
+    public List<FineModel> returnAllActiveFines(int pageSize, int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return finesRepository.findByStatus(FineStatus.PENDING, (java.awt.print.Pageable) pageable);
+    }
+
+    public List<FineModel> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return finesRepository.findByStatusAndDate(FineStatus.PENDING, date, (java.awt.print.Pageable) pageable);
     }
 }
