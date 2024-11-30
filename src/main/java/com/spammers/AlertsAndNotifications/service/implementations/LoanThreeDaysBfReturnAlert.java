@@ -28,13 +28,14 @@ public class LoanThreeDaysBfReturnAlert {
     private final ApiClient apiClient;
     private int page = 0;
     private final int EXECUTIONS = 15;
-    @Scheduled(cron = "0 */10 11-12 * * *")
+    @Scheduled(cron = "0 */10 11-13 * * *")
     private void checkLoans(){
         processEmails();
+        page++;
         //Current time
         LocalTime now = LocalTime.now();
         // Define the time 10:50am
-        LocalTime comparisonTime = LocalTime.of(10, 50);
+        LocalTime comparisonTime = LocalTime.of(13, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
         }

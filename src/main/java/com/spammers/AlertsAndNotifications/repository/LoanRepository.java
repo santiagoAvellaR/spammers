@@ -38,7 +38,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
      * @param dateInThreeDays The date to compare against the loan expiration dates.
      * @return A list of LoanModel objects that are expiring on the specified date.
      */
-    @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
+    @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays AND l.bookReturned = false")
     List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays,Pageable pageable);
 
     /**
