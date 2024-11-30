@@ -1,6 +1,7 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
+import com.spammers.AlertsAndNotifications.model.LoanNotification;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -79,8 +80,8 @@ public class LoanExpiredNotification {
                 No responder a esta cuenta de correo ya que es enviada por un motor de notificaciones automáticas."""
                 , userInfo.getName(), loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Expiración préstamo libro", emailBody);
-        NotificationModel notification = new NotificationModel(loan.getUserId(), userInfo.getGuardianEmail()
-                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED);
+        NotificationModel notification = new LoanNotification(loan.getUserId(), userInfo.getGuardianEmail()
+                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED,loan);
         notificationRepository.save(notification);
         changeLoanEmailExpiredSent(loan);
     }

@@ -201,7 +201,7 @@ class NotificationServiceImplTest {
                 LocalDate.now(), "Boulevard",
                 LocalDate.now().plusDays(2), true);
         FineModel fine = new FineModel("fine-1", loan, "Time expired", 8000,
-                LocalDate.now().minusDays(1), FineStatus.PENDING, FineType.RETARDMENT);
+                LocalDate.now().minusDays(1), FineStatus.PENDING, FineType.RETARDMENT, List.of());
         UserInfo userInfo = new UserInfo("user-1", "Guardian", "example@outlook.com");
 
         when(finesRepository.findById(fine.getFineId())).thenReturn(Optional.of(fine));
@@ -305,7 +305,7 @@ class NotificationServiceImplTest {
                 LocalDate.now().plusDays(2), true);
 
         FineModel pendingFine = new FineModel("fine-1", loan, "Time expired", 8000,
-                LocalDate.now().minusDays(1), FineStatus.PENDING, FineType.RETARDMENT);
+                LocalDate.now().minusDays(1), FineStatus.PENDING, FineType.RETARDMENT,List.of());
 
         //findLoanByUserAndBookId method --> return the loan
         when(loanRepository.findLoanByUserAndBookId(userId, bookId))
@@ -337,10 +337,10 @@ class NotificationServiceImplTest {
 
         // create some fines
         FineModel fine1 = new FineModel("fine-1", loan1, "Late return", 5000f,
-                LocalDate.now().minusDays(5), FineStatus.PENDING, FineType.RETARDMENT);
+                LocalDate.now().minusDays(5), FineStatus.PENDING, FineType.RETARDMENT,List.of());
 
         FineModel fine2 = new FineModel("fine-2", loan2, "Damaged book", 8000f,
-                LocalDate.now().minusDays(8), FineStatus.PENDING, FineType.DAMAGE);
+                LocalDate.now().minusDays(8), FineStatus.PENDING, FineType.DAMAGE,List.of());
 
         loan1.setFines(Collections.singletonList(fine1));
         loan2.setFines(Collections.singletonList(fine2));
@@ -379,7 +379,7 @@ class NotificationServiceImplTest {
                     LocalDate.now().minusDays(5 + i), true);
 
             FineModel fine = new FineModel("fine-" + i, loan, "Late return", 5000f + i,
-                    LocalDate.now().minusDays(5 + i), FineStatus.PENDING, FineType.RETARDMENT);
+                    LocalDate.now().minusDays(5 + i), FineStatus.PENDING, FineType.RETARDMENT,List.of());
 
             loan.setFines(Collections.singletonList(fine));
             loansPage1.add(loan);
@@ -392,7 +392,7 @@ class NotificationServiceImplTest {
                     LocalDate.now().minusDays(20 + i), true);
 
             FineModel fine = new FineModel("fine-" + (i + 15), loan, "Damaged book", 8000f + i,
-                    LocalDate.now().minusDays(20 + i), FineStatus.PENDING, FineType.DAMAGE);
+                    LocalDate.now().minusDays(20 + i), FineStatus.PENDING, FineType.DAMAGE,List.of());
 
             loan.setFines(Collections.singletonList(fine));
             loansPage2.add(loan);
