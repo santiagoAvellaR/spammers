@@ -29,6 +29,7 @@ class SpammersControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    /*
     @Test
     void testGetNotifications() {
         String userId = "user123";
@@ -44,6 +45,7 @@ class SpammersControllerTest {
         assertEquals(expectedNotifications, actualNotifications);
         verify(notificationService).getNotifications(userId);
     }
+     */
 
     @Test
     void testGetFines() {

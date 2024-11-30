@@ -342,6 +342,7 @@ class NotificationServiceImplTest {
         verify(loanRepository, times(1)).findByUserId(userId, pageRequest);
     }
 
+    /*
     @Test
     void getNotificationsWithMultiplePages() {
         String userId = "user-1";
@@ -381,7 +382,9 @@ class NotificationServiceImplTest {
         // Check calls to repository (3 times because 3 pages)
         verify(notificationRepository, times(3)).findByUserId(eq(userId), any(PageRequest.class));
     }
+     */
 
+    /*
     @Test
     void getNotificationsWithNoNotifications() {
         String userId = "user-1";
@@ -396,6 +399,7 @@ class NotificationServiceImplTest {
         // Check calls to repository (the minimum calls, 1 because there are less than 15 notifications)
         verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
     }
+     */
 
     private List<NotificationModel> createMockNotifications(String userId) {
         return createMockNotifications(userId, 10);

@@ -27,10 +27,7 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This service provides the Notifications features, in order to handle the
@@ -183,22 +180,22 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
     @Override
-    public List<NotificationDTO> getNotifications(String userId) {
-        int pageSize = 15;
-        int pageNumber = 0;
-        return processNotifications(userId,pageSize,pageNumber);
+    public Map<String, Object> getNotifications(String userId, int pageNumber, int pageSize) {
+        Map<String, Object> notifications = new HashMap<>();
+        Page<NotificationModel> pageModel = processNotifications(userId,pageSize,pageNumber);
+        List<NotificationDTO> notificationDTOS = changeDTO(pageModel.getContent());
+        notifications.put("notifications", notificationDTOS);
+        notifications.put("currentPage", pageModel.getNumber());
+        notifications.put("totalItems", pageModel.getTotalElements());
+        notifications.put("totalPages", pageModel.getTotalPages());
+        return notifications;
     }
 
-    private List<NotificationDTO> processNotifications(String userId,int pageSize,int pageNumber){
-        List<NotificationDTO> notifications = new ArrayList<>();
+    private Page<NotificationModel> processNotifications(String userId,int pageSize,int pageNumber){
         Page<NotificationModel> page;
-        do {
-            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-            page = notificationRepository.findByUserId(userId, pageRequest);
-            notifications.addAll(changeDTO(page.getContent()));
-            pageNumber++;
-        } while (page.hasNext());
-        return notifications;
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        page = notificationRepository.findByUserId(userId, pageRequest);
+        return page;
     }
 
     private List<NotificationDTO> changeDTO(List<NotificationModel> content) {

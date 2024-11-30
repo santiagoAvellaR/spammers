@@ -10,9 +10,11 @@ import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +33,8 @@ public class SpammersController {
      */
     @GetMapping("/user-notifications")
     @ResponseStatus(HttpStatus.OK)
-    public List<NotificationDTO> getNotifications(@RequestParam String userId){
-        return notificationService.getNotifications(userId);
+    public Map<String, Object> getNotifications(@RequestParam String userId, @RequestParam int page, @RequestParam int size) {
+        return notificationService.getNotifications(userId, page, size);
     }
 
     /**
