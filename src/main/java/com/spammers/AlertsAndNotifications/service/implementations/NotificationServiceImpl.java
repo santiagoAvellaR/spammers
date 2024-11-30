@@ -132,24 +132,21 @@ public class NotificationServiceImpl implements NotificationService {
      * to the user, and triggers an email alert with the fine details. The fine is
      * saved with a status of {@link FineStatus#PENDING}.
      *
-     * @param loanId      The unique identifier of the loan associated with the fine.
-     *                    The parameter should be of type {@link String}.
-     * @param description A description of the fine. The parameter should not exceed 300 characters.
-     * @param amount      The amount to be charged for the fine. Should be of type {@link Float}.
-     * @param email       The email address of the user to be notified about the fine.
-     *                    The parameter should be of type {@link String}.
+     * @param fineDTO A DTO of the fine.
      */
     @Override
-    public void openFine(String loanId, String description, float amount, String email) {
+    public void openFine(FineDTO fineDTO) {
+        String loanId = null;
         Optional<LoanModel> loanOptional = loanRepository.findByLoanId(loanId);
         if (loanOptional.isPresent()) {
             LoanModel loan = loanOptional.get();
             LocalDate currentDate = LocalDate.now();
+            String  email = apiClient.getUserInfoById(userId).getGuardianEmail();
             NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
             notificationRepository.save(notification);
-            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(amount).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
+            FineModel fineModel = FineModel.builder().loan(loan).description(fineDTO.getDescription()).amount(fineDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
             finesRepository.save(fineModel);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", amount, currentDate, description);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineDTO.getAmount(), currentDate, fineDTO.getDescription());
         } else{
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
@@ -166,7 +163,7 @@ public class NotificationServiceImpl implements NotificationService {
      *               The parameter should be of type {@link String}.
      */
     @Override
-    public void closeFine(String fineId) {
+    public void closeFine(String fineId) throws SpammersPrivateExceptions {
         Optional<FineModel> fineOptional = finesRepository.findById(fineId);
         if (fineOptional.isPresent()) {
             finesRepository.updateFineStatus(fineId, FineStatus.PAID);

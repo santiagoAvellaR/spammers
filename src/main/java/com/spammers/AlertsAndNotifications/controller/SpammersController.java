@@ -2,10 +2,7 @@ package com.spammers.AlertsAndNotifications.controller;
 
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
+import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +26,9 @@ public class SpammersController {
      * @param userId The user id
      * @return the notifications associated to the user.
      */
-    @GetMapping("/user-notifications")
+    @GetMapping("/users/{userId}/notifications")
     @ResponseStatus(HttpStatus.OK)
-    public List<NotificationDTO> getNotifications(@RequestParam String userId){
+    public List<NotificationDTO> getNotifications(@PathVariable String userId){
         return notificationService.getNotifications(userId);
     }
 
@@ -40,9 +37,9 @@ public class SpammersController {
      * @param userId The user id
      * @return the fines of the user.
      */
-    @GetMapping("/fines")
+    @GetMapping("/users/{userId}/fines")
     @ResponseStatus(HttpStatus.OK)
-    public List<FineModel> getFines(@RequestParam String userId){
+    public List<FineModel> getFines(@PathVariable String userId){
         return notificationService.getFines(userId);
     }
 
@@ -53,25 +50,13 @@ public class SpammersController {
      *                return date)
      * @return A message of successfully sent notification.
      */
-    @PostMapping("/notify-loan")
+    @PostMapping("/notify-create-loan")
     @ResponseStatus(HttpStatus.OK)
     public String notifyLoan(@RequestBody LoanDTO loanDTO){
         notificationService.notifyLoan(loanDTO);
         return "Notification Sent!";
     }
 
-    /**
-     * This method sends a notification when the Loan is returned (closed)
-     * @param bookId The book id
-     * @param userId the user id
-     * @return a successful message when
-     */
-    @PutMapping("/close-loan")
-    @ResponseStatus(HttpStatus.OK)
-    public String closeLoan(@RequestParam String bookId, @RequestParam String userId){
-        notificationService.closeLoan(bookId,userId);
-        return "Loan Closed!";
-    }
     /**
      * This method handles the creation of a return notification.
      * It sends a notification to the parent of the student when a book is returned,
@@ -82,13 +67,18 @@ public class SpammersController {
      * @return A message confirming that the book return notification was sent.
      * @throws SpammersPrivateExceptions if the loan record is not found for the given bookId.
      */
-    @PostMapping("/create-return")
+    @PostMapping("/notify-return-loan")
     @ResponseStatus(HttpStatus.OK)
     public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition) {
         notificationService.returnBook(bookId, returnedInBadCondition);
         return "Book Returned";
     }
 
-
+    @PostMapping("/users/{userId}/fines")
+    @ResponseStatus(HttpStatus.OK)
+    public String openFine(@RequestBody FineDTO fineDTO){
+        notificationService.openFine(fineDTO);
+        return null;
+    }
 
 }

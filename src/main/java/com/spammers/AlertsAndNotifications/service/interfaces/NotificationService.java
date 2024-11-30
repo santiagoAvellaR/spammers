@@ -13,7 +13,7 @@ public interface NotificationService {
     List<FineModel> getFines(String userId);
     List<NotificationDTO> getNotifications(String userId);
     void returnBook(String bookId, boolean returnedInBadCondition);
-    void openFine(String loanId, String description, float amount, String email);
+    void openFine(FineDTO fineDTO);
     void closeFine(String loanId);
     List<FineModel> returnAllActiveFines(int pageSize, int pageNumber);
     List<FineModel> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
