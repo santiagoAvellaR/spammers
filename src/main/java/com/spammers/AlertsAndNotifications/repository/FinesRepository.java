@@ -3,13 +3,14 @@ package com.spammers.AlertsAndNotifications.repository;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,10 +66,21 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
     List<FineModel> findByLoanId(@Param("givenLoanId") String givenLoanId);
 
     @Query("SELECT f FROM FineModel f WHERE f.fineStatus = :givenFineStatus")
-    List<FineModel> findByStatus(@Param("givenFineStatus") FineStatus givenFineStatus, Pageable pageable);
+    Page<FineModel> findByStatus(@Param("givenFineStatus") FineStatus givenFineStatus, Pageable pageable);
 
 
-    @Query("SELECT f FROM FineModel f WHERE FUNCTION('YEAR', f.expiredDate) = FUNCTION('YEAR', :givenDate) AND FUNCTION('MONTH', f.expiredDate) = FUNCTION('MONTH', :givenDate) AND f.fineStatus = :givenFineStatus")
-    List<FineModel> findByStatusAndDate(@Param("givenFineStatus") FineStatus givenFineStatus, @Param("givenDate") LocalDate givenDate, Pageable pageable);
+    @Query(value = """
+       SELECT * 
+       FROM fines f 
+       WHERE EXTRACT(YEAR FROM f.expired_date) = EXTRACT(YEAR FROM CAST(:givenDate AS DATE))
+         AND EXTRACT(MONTH FROM f.expired_date) = EXTRACT(MONTH FROM CAST(:givenDate AS DATE))
+         AND f.fine_status = :givenFineStatus
+       ORDER BY f.expired_date DESC
+       """,
+            nativeQuery = true)
+    Page<FineModel> findByStatusAndDate(
+            @Param("givenFineStatus") FineStatus givenFineStatus,
+            @Param("givenDate") LocalDate givenDate,
+            Pageable pageable);
 
 }

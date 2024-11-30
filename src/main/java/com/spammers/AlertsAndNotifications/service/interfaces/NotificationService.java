@@ -5,6 +5,7 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface NotificationService {
     void notifyLoan(LoanDTO loanDTO);
@@ -14,6 +15,6 @@ public interface NotificationService {
     void returnBook(String bookId, boolean returnedInBadCondition);
     void openFine(FineDTO fineDTO);
     void closeFine(String loanId);
-    List<FineModel> returnAllActiveFines(int pageSize, int pageNumber);
-    List<FineModel> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
+    Map<String, Object> returnAllActiveFines(int pageSize, int pageNumber);
+    Map<String, Object> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
 }
