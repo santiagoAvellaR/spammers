@@ -135,19 +135,20 @@ public class NotificationServiceImpl implements NotificationService {
      * @param fineDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineDTO fineDTO) {
-        String loanId = null;
-        Optional<LoanModel> loanOptional = loanRepository.findByLoanId(loanId);
-        if (loanOptional.isPresent()) {
-            LoanModel loan = loanOptional.get();
+    public void openFine(FineDTO fineDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineDTO.getBookId(), fineDTO.getUserId());
+        if (lastLoan.isPresent()) {
+            LoanModel loan = lastLoan.get();
+            String loanId = loan.getLoanId();
             LocalDate currentDate = LocalDate.now();
-            String  email = apiClient.getUserInfoById(userId).getGuardianEmail();
+            String email = apiClient.getUserInfoById(fineDTO.getUserId()).getGuardianEmail();
             NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
             notificationRepository.save(notification);
             FineModel fineModel = FineModel.builder().loan(loan).description(fineDTO.getDescription()).amount(fineDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
             finesRepository.save(fineModel);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineDTO.getAmount(), currentDate, fineDTO.getDescription());
-        } else{
+        }
+        else {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
     }

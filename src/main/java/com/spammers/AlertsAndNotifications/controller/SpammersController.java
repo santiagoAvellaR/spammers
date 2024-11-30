@@ -3,15 +3,12 @@ package com.spammers.AlertsAndNotifications.controller;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -74,11 +71,35 @@ public class SpammersController {
         return "Book Returned";
     }
 
-    @PostMapping("/users/{userId}/fines")
+    /**
+     * This method handles the creation of a fine for a given user.
+     * It creates a fine based on the provided information in the request body.
+     *
+     * @param fineDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
+     * @param userId The user ID for whom the fine is being created.
+     * @return A message indicating that the fine has been successfully created.
+     */
+    @PostMapping("/users/{userId}/fines/create")
     @ResponseStatus(HttpStatus.OK)
-    public String openFine(@RequestBody FineDTO fineDTO){
+    public String openFine(@RequestBody FineDTO fineDTO, @PathVariable String userId) {
         notificationService.openFine(fineDTO);
-        return null;
+        return "Fine Created";
     }
+
+    /**
+     * This method handles the closing of a fine for a given user.
+     * It marks the fine as closed based on the provided fine ID.
+     *
+     * @param userId The ID of the user whose fine is being closed.
+     * @param fineId The ID of the fine that is being closed.
+     * @return A message indicating that the fine has been successfully closed.
+     */
+    @PutMapping("/users/{userId}/fines/{fineId}/close")
+    @ResponseStatus(HttpStatus.OK)
+    public String closeFine(@PathVariable String userId, @PathVariable String fineId) {
+        notificationService.closeFine(fineId);
+        return "Fine Closed";
+    }
+
 
 }

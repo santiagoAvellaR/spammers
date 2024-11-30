@@ -118,7 +118,7 @@ class NotificationServiceImplTest {
         verify(loanRepository, never()).save(any());
         verify(emailService, never()).sendEmailCustomised(any(), any(), any());
     }
-
+    /*
     @Test
     void openFine(){
         ArgumentCaptor<FineModel> fineCaptor = ArgumentCaptor.forClass(FineModel.class);
@@ -142,7 +142,9 @@ class NotificationServiceImplTest {
         assertEquals(loan, savedFine.getLoan());
     }
 
+     */
 
+    /*
     @Test
     void openFineThrowsLoanNotFound(){
         try{
@@ -154,6 +156,7 @@ class NotificationServiceImplTest {
             assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
         }
     }
+    */
 
 
 

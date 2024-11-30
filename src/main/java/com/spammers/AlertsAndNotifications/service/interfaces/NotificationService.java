@@ -3,7 +3,6 @@ package com.spammers.AlertsAndNotifications.service.interfaces;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import java.time.LocalDate;
 import java.util.List;
 
