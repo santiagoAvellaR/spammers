@@ -51,7 +51,7 @@ public class LoanThreeDaysBfReturnAlert {
         }
     }
     private List<LoanModel> fetchEmailsToSend() {
-        Pageable pageable = PageRequest.of(page, 15);
+        Pageable pageable = PageRequest.of(page, EXECUTIONS);
         return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3), pageable);
     }
 

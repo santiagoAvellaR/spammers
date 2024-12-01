@@ -1,4 +1,4 @@
-package com.spammers.AlertsAndNotifications.model;
+package com.spammers.AlertsAndNotifications.model.dto;
 
 
 

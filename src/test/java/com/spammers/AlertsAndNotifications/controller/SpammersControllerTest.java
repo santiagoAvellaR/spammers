@@ -3,9 +3,7 @@ package com.spammers.AlertsAndNotifications.controller;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

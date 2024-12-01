@@ -3,18 +3,12 @@ package com.spammers.AlertsAndNotifications.controller;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

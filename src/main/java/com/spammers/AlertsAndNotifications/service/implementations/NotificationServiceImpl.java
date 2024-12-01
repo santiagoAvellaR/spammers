@@ -2,11 +2,12 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
+import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -14,13 +15,11 @@ import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
