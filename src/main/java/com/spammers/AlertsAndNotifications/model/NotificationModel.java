@@ -27,6 +27,7 @@ public class NotificationModel {
     private LocalDate sentDate;
     @Column(name="type", nullable = false)
     private NotificationType notificationType;
+
     public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type) {
         this.studentId = studentId;
         this.emailGuardian = emailGuardian;
