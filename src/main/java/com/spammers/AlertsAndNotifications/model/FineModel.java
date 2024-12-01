@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -37,7 +39,10 @@ public class FineModel {
   
     @Column(name="fineType", nullable = false)
     private FineType fineType;
-  
+
+    @OneToMany(mappedBy = "fine", cascade = CascadeType.PERSIST, orphanRemoval = false)
+    private List<FineNotification> fineNotifications = new ArrayList<>();
+
     public FineModel() {
     }
 }

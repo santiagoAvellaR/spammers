@@ -43,6 +43,9 @@ public class LoanModel {
     @Column(name="bookReturned", nullable = false)
     private boolean bookReturned;
 
+    @OneToMany(mappedBy = "loan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LoanNotification> loanNotifications = new ArrayList<>();
+
     public LoanModel(String userId, String bookId, LocalDate loanDate, String bookName,LocalDate loanExpired, boolean status) {
         this.userId = userId;
         this.bookId = bookId;

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
+import com.spammers.AlertsAndNotifications.model.NotificationDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,14 +31,14 @@ class SpammersControllerTest {
     @Test
     void testGetNotifications() {
         String userId = "user123";
-        List<NotificationModel> expectedNotifications = Arrays.asList(
-                new NotificationModel(),
-                new NotificationModel()
+        List<NotificationDTO> expectedNotifications = Arrays.asList(
+                new NotificationDTO(),
+                new NotificationDTO()
         );
 
         when(notificationService.getNotifications(userId))
                 .thenReturn(expectedNotifications);
-        List<NotificationModel> actualNotifications = spammersController.getNotifications(userId);
+        List<NotificationDTO> actualNotifications = spammersController.getNotifications(userId);
         assertNotNull(actualNotifications);
         assertEquals(expectedNotifications, actualNotifications);
         verify(notificationService).getNotifications(userId);
@@ -52,12 +52,12 @@ class SpammersControllerTest {
                 new FineModel()
         );
 
-        when(notificationService.getFines(userId))
+        when(notificationService.getFinesByUserId(userId))
                 .thenReturn(expectedFines);
         List<FineModel> actualFines = spammersController.getFines(userId);
         assertNotNull(actualFines);
         assertEquals(expectedFines, actualFines);
-        verify(notificationService).getFines(userId);
+        verify(notificationService).getFinesByUserId(userId);
     }
 
     @Test

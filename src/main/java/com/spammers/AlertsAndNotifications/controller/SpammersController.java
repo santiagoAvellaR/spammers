@@ -2,18 +2,13 @@ package com.spammers.AlertsAndNotifications.controller;
 
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
+import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,9 +23,9 @@ public class SpammersController {
      * @param userId The user id
      * @return the notifications associated to the user.
      */
-    @GetMapping("/notifications")
+    @GetMapping("/users/{userId}/notifications")
     @ResponseStatus(HttpStatus.OK)
-    public List<NotificationModel> getNotifications(@RequestParam String userId){
+    public List<NotificationDTO> getNotifications(@PathVariable String userId){
         return notificationService.getNotifications(userId);
     }
 
@@ -39,10 +34,10 @@ public class SpammersController {
      * @param userId The user id
      * @return the fines of the user.
      */
-    @GetMapping("/fines")
+    @GetMapping("/users/{userId}/fines")
     @ResponseStatus(HttpStatus.OK)
-    public List<FineModel> getFines(@RequestParam String userId){
-        return notificationService.getFines(userId);
+    public List<FineModel> getFinesByUserId(@PathVariable String userId){
+        return notificationService.getFinesByUserId(userId);
     }
 
     /**
@@ -52,25 +47,13 @@ public class SpammersController {
      *                return date)
      * @return A message of successfully sent notification.
      */
-    @PostMapping("/notify-loan")
+    @PostMapping("/notify-create-loan")
     @ResponseStatus(HttpStatus.OK)
     public String notifyLoan(@RequestBody LoanDTO loanDTO){
         notificationService.notifyLoan(loanDTO);
         return "Notification Sent!";
     }
 
-    /**
-     * This method sends a notification when the Loan is returned (closed)
-     * @param bookId The book id
-     * @param userId the user id
-     * @return a successful message when
-     */
-    @PutMapping("/close-loan")
-    @ResponseStatus(HttpStatus.OK)
-    public String closeLoan(@RequestParam String bookId, @RequestParam String userId){
-        notificationService.closeLoan(bookId,userId);
-        return "Loan Closed!";
-    }
     /**
      * This method handles the creation of a return notification.
      * It sends a notification to the parent of the student when a book is returned,
@@ -81,13 +64,42 @@ public class SpammersController {
      * @return A message confirming that the book return notification was sent.
      * @throws SpammersPrivateExceptions if the loan record is not found for the given bookId.
      */
-    @PostMapping("/create-return")
+    @PostMapping("/notify-return-loan")
     @ResponseStatus(HttpStatus.OK)
     public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition) {
         notificationService.returnBook(bookId, returnedInBadCondition);
         return "Book Returned";
     }
 
+    /**
+     * This method handles the creation of a fine for a given user.
+     * It creates a fine based on the provided information in the request body.
+     *
+     * @param fineInputDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
+     * @param userId The user ID for whom the fine is being created.
+     * @return A message indicating that the fine has been successfully created.
+     */
+    @PostMapping("/users/{userId}/fines/create")
+    @ResponseStatus(HttpStatus.OK)
+    public String openFine(@RequestBody FineInputDTO fineInputDTO, @PathVariable String userId) {
+        notificationService.openFine(fineInputDTO);
+        return "Fine Created";
+    }
+
+    /**
+     * This method handles the closing of a fine for a given user.
+     * It marks the fine as closed based on the provided fine ID.
+     *
+     * @param userId The ID of the user whose fine is being closed.
+     * @param fineId The ID of the fine that is being closed.
+     * @return A message indicating that the fine has been successfully closed.
+     */
+    @PutMapping("/users/{userId}/fines/{fineId}/close")
+    @ResponseStatus(HttpStatus.OK)
+    public String closeFine(@PathVariable String userId, @PathVariable String fineId) {
+        notificationService.closeFine(fineId);
+        return "Fine Closed";
+    }
 
 
 }
