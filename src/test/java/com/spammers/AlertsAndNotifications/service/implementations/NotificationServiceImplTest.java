@@ -4,6 +4,7 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -20,9 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.web.client.RestClient;
 
 import java.lang.reflect.Method;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -384,7 +387,6 @@ class NotificationServiceImplTest {
         verify(notificationRepository, times(3)).findByUserId(eq(userId), any(PageRequest.class));
     }
      */
-
     /*
     @Test
     void getNotificationsWithNoNotifications() {
@@ -399,8 +401,7 @@ class NotificationServiceImplTest {
 
         // Check calls to repository (the minimum calls, 1 because there are less than 15 notifications)
         verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
-    }
-     */
+    }*/
 
     private List<NotificationModel> createMockNotifications(String userId) {
         return createMockNotifications(userId, 10);

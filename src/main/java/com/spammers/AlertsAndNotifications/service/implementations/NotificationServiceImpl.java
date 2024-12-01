@@ -8,13 +8,12 @@ import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
+import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
@@ -129,21 +129,21 @@ public class NotificationServiceImpl implements NotificationService {
      * to the user, and triggers an email alert with the fine details. The fine is
      * saved with a status of {@link FineStatus#PENDING}.
      *
-     * @param fineDTO A DTO of the fine.
+     * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineDTO fineDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineDTO.getBookId(), fineDTO.getUserId());
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
-            String loanId = loan.getLoanId();
             LocalDate currentDate = LocalDate.now();
-            String email = apiClient.getUserInfoById(fineDTO.getUserId()).getGuardianEmail();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
-            notificationRepository.save(notification);
-            FineModel fineModel = FineModel.builder().loan(loan).description(fineDTO.getDescription()).amount(fineDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
+            String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
+            String description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
             finesRepository.save(fineModel);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineDTO.getAmount(), currentDate, fineDTO.getDescription());
+            NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel);
+            notificationRepository.save(notification);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description);
         }
         else {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
@@ -234,13 +234,30 @@ public class NotificationServiceImpl implements NotificationService {
         return pending;
     }
 
-    public List<FineModel> returnAllActiveFines(int pageSize, int pageNumber){
+    public Map<String, Object> returnAllActiveFines(int pageSize, int pageNumber){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return finesRepository.findByStatus(FineStatus.PENDING, pageable);
+        Page<FineModel> page =  finesRepository.findByStatus(FineStatus.PENDING,  pageable);
+        return putDataOnMap(page);
     }
 
-    public List<FineModel> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
+    private FineOutputDTO fineModelToOutputDTO(FineModel fineModel){
+        return new FineOutputDTO(fineModel.getFineId(), fineModel.getDescription(), fineModel.getAmount(),
+                fineModel.getFineStatus(), fineModel.getFineType(), fineModel.getExpiredDate(), fineModel.getLoan().getBookName());
+    }
+
+    private Map<String, Object> putDataOnMap(Page<FineModel> page){
+        List<FineOutputDTO> fineInputDTOSList = page.getContent().stream().map(this::fineModelToOutputDTO).toList();
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", fineInputDTOSList);
+        map.put("currentPage", page.getNumber());
+        map.put("totalPages", page.getTotalPages());
+        map.put("totalItems", page.getTotalElements());
+        return map;
+    }
+
+    public Map<String, Object> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
+        Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
+        return putDataOnMap(page);
     }
 }

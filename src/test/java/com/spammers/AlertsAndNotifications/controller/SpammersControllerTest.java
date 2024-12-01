@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
+import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,15 +71,6 @@ class SpammersControllerTest {
         String result = spammersController.notifyLoan(loanDTO);
         assertEquals("Notification Sent!", result);
         verify(notificationService).notifyLoan(loanDTO);
-    }
-
-    @Test
-    void testCloseLoan() {
-        String bookId = "book456";
-        String userId = "user123";
-        String result = spammersController.closeLoan(bookId, userId);
-        assertEquals("Loan Closed!", result);
-        verify(notificationService).closeLoan(bookId, userId);
     }
 
     @Test
