@@ -3,12 +3,14 @@ package com.spammers.AlertsAndNotifications.controller;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,8 +27,8 @@ public class SpammersController {
      */
     @GetMapping("/users/{userId}/notifications")
     @ResponseStatus(HttpStatus.OK)
-    public List<NotificationDTO> getNotifications(@PathVariable String userId){
-        return notificationService.getNotifications(userId);
+    public Map<String, Object> getNotifications(@RequestParam String userId, @RequestParam int page, @RequestParam int size) {
+        return notificationService.getNotifications(userId, page, size);
     }
 
     /**
@@ -35,9 +37,9 @@ public class SpammersController {
      * @return the fines of the user.
      */
     @GetMapping("/users/{userId}/fines")
-    @ResponseStatus(HttpStatus.OK)
-    public List<FineModel> getFinesByUserId(@PathVariable String userId){
-        return notificationService.getFinesByUserId(userId);
+    @ResponseStatus(HttpStatus.OK)// TODO --> Debería usar paginacion al igual que todo metodo de consulta
+    public List<FineModel> getFines(@PathVariable String userId){
+        return notificationService.getFines(userId);
     }
 
     /**
@@ -75,14 +77,14 @@ public class SpammersController {
      * This method handles the creation of a fine for a given user.
      * It creates a fine based on the provided information in the request body.
      *
-     * @param fineInputDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
+     * @param fineDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
      * @param userId The user ID for whom the fine is being created.
      * @return A message indicating that the fine has been successfully created.
      */
     @PostMapping("/users/{userId}/fines/create")
     @ResponseStatus(HttpStatus.OK)
-    public String openFine(@RequestBody FineInputDTO fineInputDTO, @PathVariable String userId) {
-        notificationService.openFine(fineInputDTO);
+    public String openFine(@RequestBody FineInputDTO fineDTO, @PathVariable String userId) {
+        notificationService.openFine(fineDTO);
         return "Fine Created";
     }
 

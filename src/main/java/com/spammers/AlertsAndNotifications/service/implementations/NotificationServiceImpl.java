@@ -2,16 +2,18 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
+import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
 import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.*;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
@@ -99,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<FineModel> getFinesByUserId(String userId) {
+    public List<FineModel> getFines(String userId) {
         int pageSize = 15;
         int pageNumber = 0;
         return processLoans(userId,pageSize,pageNumber);
@@ -175,22 +178,22 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
     @Override
-    public List<NotificationDTO> getNotifications(String userId) {
-        int pageSize = 15;
-        int pageNumber = 0;
-        return processNotifications(userId,pageSize,pageNumber);
+    public Map<String, Object> getNotifications(String userId, int pageNumber, int pageSize) {
+        Map<String, Object> notifications = new HashMap<>();
+        Page<NotificationModel> pageModel = processNotifications(userId,pageSize,pageNumber);
+        List<NotificationDTO> notificationDTOS = changeDTO(pageModel.getContent());
+        notifications.put("notifications", notificationDTOS);
+        notifications.put("currentPage", pageModel.getNumber());
+        notifications.put("totalItems", pageModel.getTotalElements());
+        notifications.put("totalPages", pageModel.getTotalPages());
+        return notifications;
     }
 
-    private List<NotificationDTO> processNotifications(String userId,int pageSize,int pageNumber){
-        List<NotificationDTO> notifications = new ArrayList<>();
+    private Page<NotificationModel> processNotifications(String userId,int pageSize,int pageNumber){
         Page<NotificationModel> page;
-        do {
-            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-            page = notificationRepository.findByUserId(userId, pageRequest);
-            notifications.addAll(changeDTO(page.getContent()));
-            pageNumber++;
-        } while (page.hasNext());
-        return notifications;
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        page = notificationRepository.findByUserId(userId, pageRequest);
+        return page;
     }
 
     private List<NotificationDTO> changeDTO(List<NotificationModel> content) {

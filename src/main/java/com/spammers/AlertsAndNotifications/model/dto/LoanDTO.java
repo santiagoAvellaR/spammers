@@ -1,4 +1,4 @@
-package com.spammers.AlertsAndNotifications.model;
+package com.spammers.AlertsAndNotifications.model.dto;
 
 
 
@@ -7,6 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 // Esta clase para lo que deberia tener el prestamo que nos envia el modulo de gestion de prestamos
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 @Setter
 public class LoanDTO {

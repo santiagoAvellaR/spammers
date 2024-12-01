@@ -43,6 +43,7 @@ public class LoanExpiredNotification {
     @Scheduled(cron = "0 */10 8-10 * * MON-FRI")
     private void sendEmails() {
         processEmails();
+        page++;
         //Current time
         LocalTime now = LocalTime.now();
         // Define the time 10:50am
