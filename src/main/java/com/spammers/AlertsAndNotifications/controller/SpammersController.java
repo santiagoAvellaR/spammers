@@ -37,7 +37,7 @@ public class SpammersController {
      * @return the fines of the user.
      */
     @GetMapping("/users/{userId}/fines")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.OK)// TODO --> Debería usar paginacion al igual que todo metodo de consulta
     public List<FineModel> getFines(@PathVariable String userId){
         return notificationService.getFines(userId);
     }
