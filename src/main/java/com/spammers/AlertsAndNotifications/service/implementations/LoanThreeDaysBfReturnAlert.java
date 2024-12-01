@@ -60,7 +60,7 @@ public class LoanThreeDaysBfReturnAlert {
         emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
                 ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
         NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
-                , LocalDate.now() , NotificationType.ALERT);
+                , LocalDate.now() , NotificationType.ALERT, false);
         notificationRepository.save(notificationModel);
     }
 }

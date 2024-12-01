@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,12 +53,12 @@ class SpammersControllerTest {
                 new FineModel()
         );
 
-        when(notificationService.getFines(userId))
+        when(notificationService.getFinesByUserId(userId))
                 .thenReturn(expectedFines);
         List<FineModel> actualFines = spammersController.getFines(userId);
         assertNotNull(actualFines);
         assertEquals(expectedFines, actualFines);
-        verify(notificationService).getFines(userId);
+        verify(notificationService).getFinesByUserId(userId);
     }
 
     @Test

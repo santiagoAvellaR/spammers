@@ -11,11 +11,9 @@ import java.util.Map;
 public interface NotificationService {
     void notifyLoan(LoanDTO loanDTO);
     void closeLoan(String bookId, String userId)throws SpammersPublicExceptions, SpammersPrivateExceptions ;
-    List<FineModel> getFines(String userId);
+    List<FineModel> getFinesByUserId(String userId);
     Map<String, Object> getNotifications(String userId, int page, int size);
     void returnBook(String bookId, boolean returnedInBadCondition);
     void openFine(FineInputDTO fineInputDTO);
     void closeFine(String loanId);
-    Map<String, Object> returnAllActiveFines(int pageSize, int pageNumber);
-    Map<String, Object> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
 }

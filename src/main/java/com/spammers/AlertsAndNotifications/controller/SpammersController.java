@@ -39,7 +39,7 @@ public class SpammersController {
     @GetMapping("/users/{userId}/fines")
     @ResponseStatus(HttpStatus.OK)// TODO --> Debería usar paginacion al igual que todo metodo de consulta
     public List<FineModel> getFines(@PathVariable String userId){
-        return notificationService.getFines(userId);
+        return notificationService.getFinesByUserId(userId);
     }
 
     /**

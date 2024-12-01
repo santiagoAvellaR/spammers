@@ -13,7 +13,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class NotificationDTO {
-    private String emailGuardian;
+    private String id;
     private LocalDate sentDate;
     private NotificationType notificationType;
+    private String bookName;
+    private boolean hasBeenSeen;
 }

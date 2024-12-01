@@ -25,13 +25,18 @@ public class NotificationModel {
 
     @Column(name="sentDate", nullable = true)
     private LocalDate sentDate;
+
     @Column(name="type", nullable = false)
     private NotificationType notificationType;
 
-    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type) {
+    @Column(name = "hasBeenSeen", nullable = false)
+    private boolean hasBeenSeen;
+
+    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type, boolean hasBeenSeen) {
         this.studentId = studentId;
         this.emailGuardian = emailGuardian;
         this.sentDate = sendDate;
         this.notificationType = type;
+        this.hasBeenSeen = hasBeenSeen;
     }
 }

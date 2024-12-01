@@ -60,7 +60,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
         loanRepository.save(loanM);
-        NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM);
+        NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM, false);
 
         notificationRepository.save(notification);
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
@@ -83,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
         String email = apiClient.getUserInfoById(userId).getGuardianEmail();
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Devolución de libro: "+loan.get().getBookName() +
                 " \nFecha: "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now(), NotificationType.BOOK_LOAN_RETURNED);
+        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now(), NotificationType.BOOK_LOAN_RETURNED, false);
         notificationRepository.save(notificationModel);
     }
 
@@ -102,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<FineModel> getFines(String userId) {
+    public List<FineModel> getFinesByUserId(String userId) {
         int pageSize = 15;
         int pageNumber = 0;
         return processLoans(userId,pageSize,pageNumber);
@@ -170,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
             LocalDate currentDate = LocalDate.now();
             UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
             String email = userInfo.getGuardianEmail();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE_PAID);
+            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE_PAID, false);
             notificationRepository.save(notification);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
         } else{
@@ -199,7 +199,8 @@ public class NotificationServiceImpl implements NotificationService {
     private List<NotificationDTO> changeDTO(List<NotificationModel> content) {
         List<NotificationDTO> notifications = new ArrayList<>();
         for(NotificationModel model: content){
-            notifications.add(new NotificationDTO(model.getEmailGuardian(),model.getSentDate(),model.getNotificationType()));
+            String bookName = null;
+            notifications.add(new NotificationDTO(model.getIdNotification(), model.getSentDate(), model.getNotificationType(), bookName, model.isHasBeenSeen()));
         }
         return notifications;
     }
@@ -232,32 +233,5 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return pending;
-    }
-
-    public Map<String, Object> returnAllActiveFines(int pageSize, int pageNumber){
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<FineModel> page =  finesRepository.findByStatus(FineStatus.PENDING,  pageable);
-        return putDataOnMap(page);
-    }
-
-    private FineOutputDTO fineModelToOutputDTO(FineModel fineModel){
-        return new FineOutputDTO(fineModel.getFineId(), fineModel.getDescription(), fineModel.getAmount(),
-                fineModel.getFineStatus(), fineModel.getFineType(), fineModel.getExpiredDate(), fineModel.getLoan().getBookName());
-    }
-
-    private Map<String, Object> putDataOnMap(Page<FineModel> page){
-        List<FineOutputDTO> fineInputDTOSList = page.getContent().stream().map(this::fineModelToOutputDTO).toList();
-        Map<String, Object> map = new HashMap<>();
-        map.put("data", fineInputDTOSList);
-        map.put("currentPage", page.getNumber());
-        map.put("totalPages", page.getTotalPages());
-        map.put("totalItems", page.getTotalElements());
-        return map;
-    }
-
-    public Map<String, Object> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
-        return putDataOnMap(page);
     }
 }
