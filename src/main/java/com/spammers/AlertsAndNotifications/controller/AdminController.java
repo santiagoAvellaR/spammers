@@ -1,6 +1,8 @@
 package com.spammers.AlertsAndNotifications.controller;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
+import com.spammers.AlertsAndNotifications.model.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,13 @@ public class AdminController {
 
     @GetMapping("/loans-about-expire")
     @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> getLoansAboutExpire(@RequestParam LocalDate date, @RequestParam int page, int size){
+    public PaginatedResponseDTO<FineOutputDTO> getLoansAboutExpire(@RequestParam LocalDate date, @RequestParam int page, int size){
         return adminService.returnAllActiveFinesBetweenDate(date, size, page);
     }
 
     @GetMapping("/fines-pending")
     @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> getFinesPending(@RequestParam int page, int size){
+    public PaginatedResponseDTO<FineOutputDTO> getFinesPending(@RequestParam int page, int size){
         return adminService.returnAllActiveFines(page, size);
     }
 }

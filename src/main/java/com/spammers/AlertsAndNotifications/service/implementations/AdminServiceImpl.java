@@ -2,6 +2,7 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
@@ -27,27 +28,31 @@ public class AdminServiceImpl implements AdminService {
                 fineModel.getFineStatus(), fineModel.getFineType(), fineModel.getExpiredDate(), fineModel.getLoan().getBookName());
     }
 
-    private Map<String, Object> putDataOnMap(Page<FineModel> page){
-        List<FineOutputDTO> fineInputDTOSList = page.getContent().stream().map(this::fineModelToOutputDTO).toList();
-        Map<String, Object> map = new HashMap<>();
-        map.put("data", fineInputDTOSList);
-        map.put("currentPage", page.getNumber());
-        map.put("totalPages", page.getTotalPages());
-        map.put("totalItems", page.getTotalElements());
-        return map;
+    private PaginatedResponseDTO<FineOutputDTO> encapsulateFineModelOnDTO(Page<FineModel> page){
+        List<FineOutputDTO> fineOutputDTOList = page.getContent().stream()
+                .map(this::fineModelToOutputDTO)
+                .toList();
+
+        return new PaginatedResponseDTO<>(
+                fineOutputDTOList,
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements()
+        );
     }
 
     @Override
-    public Map<String, Object> returnAllActiveFines(int pageSize, int pageNumber){
+    public PaginatedResponseDTO<FineOutputDTO> returnAllActiveFines(int pageSize, int pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<FineModel> page =  finesRepository.findByStatus(FineStatus.PENDING,  pageable);
-        return putDataOnMap(page);
+        Page<FineModel> page = finesRepository.findByStatus(FineStatus.PENDING, pageable);
+        return encapsulateFineModelOnDTO(page);
     }
 
+
     @Override
-    public Map<String, Object> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
+    public PaginatedResponseDTO<FineOutputDTO> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
-        return putDataOnMap(page);
+        return encapsulateFineModelOnDTO(page);
     }
 }
