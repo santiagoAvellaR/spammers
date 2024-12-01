@@ -36,8 +36,8 @@ public class SpammersController {
      */
     @GetMapping("/users/{userId}/fines")
     @ResponseStatus(HttpStatus.OK)
-    public List<FineModel> getFines(@PathVariable String userId){
-        return notificationService.getFines(userId);
+    public List<FineModel> getFinesByUserId(@PathVariable String userId){
+        return notificationService.getFinesByUserId(userId);
     }
 
     /**
@@ -75,14 +75,14 @@ public class SpammersController {
      * This method handles the creation of a fine for a given user.
      * It creates a fine based on the provided information in the request body.
      *
-     * @param fineDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
+     * @param fineInputDTO The data transfer object (DTO) containing the information for the fine (description, amount, expired date, etc.).
      * @param userId The user ID for whom the fine is being created.
      * @return A message indicating that the fine has been successfully created.
      */
     @PostMapping("/users/{userId}/fines/create")
     @ResponseStatus(HttpStatus.OK)
-    public String openFine(@RequestBody FineDTO fineDTO, @PathVariable String userId) {
-        notificationService.openFine(fineDTO);
+    public String openFine(@RequestBody FineInputDTO fineInputDTO, @PathVariable String userId) {
+        notificationService.openFine(fineInputDTO);
         return "Fine Created";
     }
 

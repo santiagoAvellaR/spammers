@@ -7,9 +7,7 @@ import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
+import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
@@ -101,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<FineModel> getFines(String userId) {
+    public List<FineModel> getFinesByUserId(String userId) {
         int pageSize = 15;
         int pageNumber = 0;
         return processLoans(userId,pageSize,pageNumber);
@@ -128,20 +126,21 @@ public class NotificationServiceImpl implements NotificationService {
      * to the user, and triggers an email alert with the fine details. The fine is
      * saved with a status of {@link FineStatus#PENDING}.
      *
-     * @param fineDTO A DTO of the fine.
+     * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineDTO fineDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineDTO.getBookId(), fineDTO.getUserId());
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
-            String email = apiClient.getUserInfoById(fineDTO.getUserId()).getGuardianEmail();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
-            notificationRepository.save(notification);
-            FineModel fineModel = FineModel.builder().loan(loan).description(fineDTO.getDescription()).amount(fineDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineDTO.getFineType()).build();
+            String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
+            String description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
             finesRepository.save(fineModel);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineDTO.getAmount(), currentDate, fineDTO.getDescription());
+            NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel);
+            notificationRepository.save(notification);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description);
         }
         else {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
@@ -238,14 +237,15 @@ public class NotificationServiceImpl implements NotificationService {
         return putDataOnMap(page);
     }
 
-    private FineDTO fineModelToDTO(FineModel fineModel){
-        return new FineDTO(fineModel.getDescription(), fineModel.getAmount(), fineModel.getFineType(), fineModel.getLoan().getBookId(), fineModel.getLoan().getUserId());
+    private FineOutputDTO fineModelToOutputDTO(FineModel fineModel){
+        return new FineOutputDTO(fineModel.getFineId(), fineModel.getDescription(), fineModel.getAmount(),
+                fineModel.getFineStatus(), fineModel.getFineType(), fineModel.getExpiredDate(), fineModel.getLoan().getBookName());
     }
 
     private Map<String, Object> putDataOnMap(Page<FineModel> page){
-        List<FineDTO> fineDTOSList = page.getContent().stream().map(this::fineModelToDTO).toList();
+        List<FineOutputDTO> fineInputDTOSList = page.getContent().stream().map(this::fineModelToOutputDTO).toList();
         Map<String, Object> map = new HashMap<>();
-        map.put("data", fineDTOSList);
+        map.put("data", fineInputDTOSList);
         map.put("currentPage", page.getNumber());
         map.put("totalPages", page.getTotalPages());
         map.put("totalItems", page.getTotalElements());

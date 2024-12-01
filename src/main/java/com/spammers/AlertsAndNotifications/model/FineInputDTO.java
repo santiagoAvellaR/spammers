@@ -8,8 +8,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class FineDTO {
-    private String description;
+public class FineInputDTO {
     private float amount;
     private FineType fineType;
     private String bookId;

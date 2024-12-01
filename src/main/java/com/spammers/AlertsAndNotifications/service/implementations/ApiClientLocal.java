@@ -10,7 +10,7 @@ import java.util.Map;
 public class ApiClientLocal extends ApiClient {
     HashMap<String, UserInfo> users = new HashMap<>(Map.of(
             "miguel-123", new UserInfo("miguel","Miguel Guardian","aldandaniel535@gmail.com"),
-            "raul-123",new UserInfo("raul","raul Guardian", "santiagoavellar02@gmail.com"),
+            "raul-123",new UserInfo("raul","raul Guardian", "santiago.avellaneda@mail.escuelaing.edu.co"),
             "samuel-123",new UserInfo("samuel","samuel Guardian", "jorge.gamboa-s@mail.escuelaing.edu.co") ));
     public ApiClientLocal(RestClient restClient) {
         super(restClient);
