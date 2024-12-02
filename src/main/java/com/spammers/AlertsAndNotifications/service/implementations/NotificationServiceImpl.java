@@ -2,13 +2,11 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;

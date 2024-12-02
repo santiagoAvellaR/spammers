@@ -1,13 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.interfaces;
 
-import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.List;
-import java.util.Map;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 
 public interface NotificationService {
     void notifyLoan(LoanDTO loanDTO);

@@ -2,7 +2,7 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;

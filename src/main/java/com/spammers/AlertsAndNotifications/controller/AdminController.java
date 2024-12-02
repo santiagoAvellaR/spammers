@@ -1,17 +1,13 @@
 package com.spammers.AlertsAndNotifications.controller;
 
-import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
 import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
-import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor

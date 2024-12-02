@@ -1,6 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.interfaces;
 
-import com.spammers.AlertsAndNotifications.model.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
 import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 
 import java.time.LocalDate;

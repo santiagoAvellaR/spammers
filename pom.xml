@@ -34,7 +34,7 @@
 		<!-- Excluding controller classes for analysis with SonarQube -->
 		<!-- Excluding default application class, and the exception classes-->
 		<sonar.coverage.exclusions>**/com/spammers/AlertsAndNotifications/exceptions/*,
-			**/com/spammers/AlertsAndNotifications/model/*,
+			**/com/spammers/AlertsAndNotifications/model/**,
 			**/com/spammers/AlertsAndNotifications/Application.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.java,
