@@ -1,6 +1,6 @@
-package com.spammers.AlertsAndNotifications.model;
+package com.spammers.AlertsAndNotifications.model.dto;
 
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
+import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import lombok.AllArgsConstructor;

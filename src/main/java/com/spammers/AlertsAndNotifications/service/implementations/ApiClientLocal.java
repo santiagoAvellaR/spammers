@@ -1,6 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 

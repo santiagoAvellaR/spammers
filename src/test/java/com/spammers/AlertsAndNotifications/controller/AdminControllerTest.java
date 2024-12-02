@@ -1,6 +1,6 @@
 package com.spammers.AlertsAndNotifications.controller;
 
-import com.spammers.AlertsAndNotifications.model.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
 import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
 import org.junit.jupiter.api.BeforeEach;
