@@ -1,13 +1,13 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
+import com.spammers.AlertsAndNotifications.model.LoanNotification;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
-import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +42,7 @@ public class LoanExpiredNotification {
     @Scheduled(cron = "0 */10 8-10 * * MON-FRI")
     private void sendEmails() {
         processEmails();
+        page++;
         //Current time
         LocalTime now = LocalTime.now();
         // Define the time 10:50am
@@ -79,8 +80,8 @@ public class LoanExpiredNotification {
                 No responder a esta cuenta de correo ya que es enviada por un motor de notificaciones automáticas."""
                 , userInfo.getName(), loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Expiración préstamo libro", emailBody);
-        NotificationModel notification = new NotificationModel(loan.getUserId(), userInfo.getGuardianEmail()
-                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED);
+        NotificationModel notification = new LoanNotification(loan.getUserId(), userInfo.getGuardianEmail()
+                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED,loan, false, loan.getBookName());
         notificationRepository.save(notification);
         changeLoanEmailExpiredSent(loan);
     }

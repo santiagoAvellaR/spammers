@@ -1,11 +1,10 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 

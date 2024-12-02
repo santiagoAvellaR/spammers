@@ -1,21 +1,12 @@
 package com.spammers.AlertsAndNotifications.service.interfaces;
 
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.LoanModel;
-import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import java.time.LocalDate;
-import java.util.List;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 
 public interface NotificationService {
     void notifyLoan(LoanDTO loanDTO);
-    void closeLoan(String bookId, String userId)throws SpammersPublicExceptions, SpammersPrivateExceptions ;
-    List<FineModel> getFines(String userId);
-    List<NotificationModel> getNotifications(String userId);
+    PaginatedResponseDTO<FineOutputDTO> getFinesByUserId(String userId, int page, int size);
+    PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int page, int size);
     void returnBook(String bookId, boolean returnedInBadCondition);
-    void openFine(String loanId, String description, float amount, String email);
+    void openFine(FineInputDTO fineInputDTO);
     void closeFine(String loanId);
 }

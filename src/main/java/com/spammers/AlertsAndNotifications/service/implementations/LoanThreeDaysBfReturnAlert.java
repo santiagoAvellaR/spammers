@@ -2,7 +2,7 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
@@ -28,13 +28,14 @@ public class LoanThreeDaysBfReturnAlert {
     private final ApiClient apiClient;
     private int page = 0;
     private final int EXECUTIONS = 15;
-    @Scheduled(cron = "0 */10 11-12 * * *")
+    @Scheduled(cron = "0 */10 11-13 * * *")
     private void checkLoans(){
         processEmails();
+        page++;
         //Current time
         LocalTime now = LocalTime.now();
         // Define the time 10:50am
-        LocalTime comparisonTime = LocalTime.of(10, 50);
+        LocalTime comparisonTime = LocalTime.of(13, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
         }
@@ -50,7 +51,7 @@ public class LoanThreeDaysBfReturnAlert {
         }
     }
     private List<LoanModel> fetchEmailsToSend() {
-        Pageable pageable = PageRequest.of(page, 15);
+        Pageable pageable = PageRequest.of(page, EXECUTIONS);
         return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3), pageable);
     }
 
@@ -59,7 +60,7 @@ public class LoanThreeDaysBfReturnAlert {
         emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
                 ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
         NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
-                , LocalDate.now() , NotificationType.ALERT);
+                , LocalDate.now() , NotificationType.ALERT, false, loan.getBookName());
         notificationRepository.save(notificationModel);
     }
 }

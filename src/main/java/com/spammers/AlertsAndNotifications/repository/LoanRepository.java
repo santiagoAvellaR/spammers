@@ -1,7 +1,6 @@
 package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.LoanModel;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,9 +9,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 @Repository
 public interface LoanRepository extends JpaRepository<LoanModel, String> {
 
@@ -38,7 +37,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
      * @param dateInThreeDays The date to compare against the loan expiration dates.
      * @return A list of LoanModel objects that are expiring on the specified date.
      */
-    @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays")
+    @Query("SELECT l FROM LoanModel l WHERE FUNCTION('DATE', l.loanExpired) = :dateInThreeDays AND l.bookReturned = false")
     List<LoanModel> findLoansExpiringInExactlyNDays(@Param("dateInThreeDays") LocalDate dateInThreeDays,Pageable pageable);
 
     /**
@@ -60,4 +59,7 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
 
     @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId")
     Page<LoanModel> findByUserId(@Param("givenUserId") String givenUserId, Pageable pageable);
+
+    @Query("SELECT l FROM LoanModel l  WHERE l.userId = :givenUserId AND l.bookId = :givenBookId ORDER BY l.loanDate DESC LIMIT 1")
+    Optional<LoanModel> findLastLoan(@Param("givenBookId") String givenBookId, @Param("givenUserId") String givenUserId);
 }

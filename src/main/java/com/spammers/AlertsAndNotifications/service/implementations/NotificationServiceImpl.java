@@ -2,14 +2,12 @@ package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
-import com.spammers.AlertsAndNotifications.model.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
-import com.spammers.AlertsAndNotifications.model.UserInfo;
+import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
+import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
@@ -21,13 +19,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This service provides the Notifications features, in order to handle the
@@ -43,9 +40,8 @@ public class NotificationServiceImpl implements NotificationService {
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
-    private final ApiClient apiClient;
+    private final ApiClient apiClient=new ApiClientLocal(RestClient.builder().build());
     private final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
-
 
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
@@ -58,33 +54,12 @@ public class NotificationServiceImpl implements NotificationService {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
 
-        NotificationModel notification = new NotificationModel(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN);
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
+        loanRepository.save(loanM);
+        NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM, false, loanM.getBookName());
 
         notificationRepository.save(notification);
-        loanRepository.save(loanM);
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-    }
-
-    /**
-     * This method closes a loan if it has not a fine associated with PENDING status.
-     * @param bookId the Loan id.
-     * @param userId The User id.
-     * @throws SpammersPublicExceptions If loan is not found in the Database
-     * @throws SpammersPrivateExceptions If the Loan has a current fine with PENDING status
-     */
-    @Override
-    public void closeLoan(String bookId, String userId) throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        Optional<LoanModel> loan  = loanRepository.findLoanByUserAndBookId(userId,bookId);
-        if(loan.isEmpty()) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
-        List<FineModel> fines  = finesRepository.findByLoanId(loan.get().getLoanId());
-        if(!fines.isEmpty() && pendingFine(fines)) throw new SpammersPublicExceptions(SpammersPublicExceptions.FINE_PENDING);
-        loanRepository.delete(loan.get());
-        String email = apiClient.getUserInfoById(userId).getGuardianEmail();
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Devolución de libro: "+loan.get().getBookName() +
-                " \nFecha: "+LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        NotificationModel notificationModel = new NotificationModel(userId, email,LocalDate.now(), NotificationType.BOOK_LOAN_RETURNED);
-        notificationRepository.save(notificationModel);
     }
 
     public void returnBook(String bookId, boolean returnedInBadCondition) {
@@ -102,24 +77,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<FineModel> getFines(String userId) {
-        int pageSize = 15;
-        int pageNumber = 0;
-        return processLoans(userId,pageSize,pageNumber);
-    }
-
-    private List<FineModel> processLoans(String userId, int pageSize, int pageNumber){
-        List<FineModel> fines = new ArrayList<>();
-        Page<LoanModel> page;
-        do{
-            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-            page = loanRepository.findByUserId(userId, pageRequest);
-            for(LoanModel loan: page.getContent()){
-                fines.addAll(loan.getFines());
-            }
-            pageNumber++;
-        } while(page.hasNext());
-        return fines;
+    public PaginatedResponseDTO<FineOutputDTO> getFinesByUserId(String userId, int pageSize, int pageNumber){
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<FineModel> page = finesRepository.findByUserId(userId, pageable);
+        return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
 
     /**
@@ -129,25 +90,23 @@ public class NotificationServiceImpl implements NotificationService {
      * to the user, and triggers an email alert with the fine details. The fine is
      * saved with a status of {@link FineStatus#PENDING}.
      *
-     * @param loanId      The unique identifier of the loan associated with the fine.
-     *                    The parameter should be of type {@link String}.
-     * @param description A description of the fine. The parameter should not exceed 300 characters.
-     * @param amount      The amount to be charged for the fine. Should be of type {@link Float}.
-     * @param email       The email address of the user to be notified about the fine.
-     *                    The parameter should be of type {@link String}.
+     * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(String loanId, String description, float amount, String email) {
-        Optional<LoanModel> loanOptional = loanRepository.findByLoanId(loanId);
-        if (loanOptional.isPresent()) {
-            LoanModel loan = loanOptional.get();
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
+        if (lastLoan.isPresent()) {
+            LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE);
-            notificationRepository.save(notification);
-            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(amount).expiredDate(currentDate).fineStatus(FineStatus.PENDING).build();
+            String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
+            String description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
             finesRepository.save(fineModel);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", amount, currentDate, description);
-        } else{
+            NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel, false, fineModel.getLoan().getBookName());
+            notificationRepository.save(notification);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description);
+        }
+        else {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
         }
     }
@@ -163,16 +122,15 @@ public class NotificationServiceImpl implements NotificationService {
      *               The parameter should be of type {@link String}.
      */
     @Override
-    public void closeFine(String fineId) {
+    public void closeFine(String fineId) throws SpammersPrivateExceptions {
         Optional<FineModel> fineOptional = finesRepository.findById(fineId);
         if (fineOptional.isPresent()) {
             finesRepository.updateFineStatus(fineId, FineStatus.PAID);
             FineModel fineModel = fineOptional.get();
-            LoanModel loan = fineModel.getLoan();
             LocalDate currentDate = LocalDate.now();
-            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
+            UserInfo userInfo = apiClient.getUserInfoById(fineModel.getLoan().getUserId());
             String email = userInfo.getGuardianEmail();
-            NotificationModel notification = new NotificationModel(loan.getUserId(), email, currentDate, NotificationType.FINE_PAID);
+            NotificationModel notification = new NotificationModel(fineModel.getLoan().getUserId(), email, currentDate, NotificationType.FINE_PAID, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
         } else{
@@ -180,28 +138,16 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
     @Override
-    public List<NotificationModel> getNotifications(String userId) {
-        int pageSize = 15;
-        int pageNumber = 0;
-        return processNotifications(userId,pageSize,pageNumber);
+    public PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<NotificationModel> page = notificationRepository.findByUserId(userId, pageable);
+        return NotificationDTO.encapsulateFineModelOnDTO(page);
     }
-
-    private List<NotificationModel> processNotifications(String userId,int pageSize,int pageNumber){
-        List<NotificationModel> notifications = new ArrayList<>();
-        Page<NotificationModel> page;
-        do {
-            PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-            page = notificationRepository.findByUserId(userId, pageRequest);
-            notifications.addAll(page.getContent());
-            pageNumber++;
-        } while (page.hasNext());
-        return notifications;
-    }
-
 
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }
+
     private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
 
         String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
@@ -216,7 +162,6 @@ public class NotificationServiceImpl implements NotificationService {
                 conditionMessage
         );
     }
-
 
     private boolean pendingFine(List<FineModel> fines) {
         boolean pending = false;
