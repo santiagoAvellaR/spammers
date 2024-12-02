@@ -5,6 +5,7 @@ import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
 
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
 @Setter
 public class FineOutputDTO {

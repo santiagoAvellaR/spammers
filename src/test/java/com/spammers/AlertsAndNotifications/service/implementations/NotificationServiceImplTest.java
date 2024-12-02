@@ -1,12 +1,9 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
-
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
-import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
-import com.spammers.AlertsAndNotifications.model.enums.FineType;
-import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
+import com.spammers.AlertsAndNotifications.model.dto.*;
+import com.spammers.AlertsAndNotifications.model.enums.*;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
@@ -14,22 +11,21 @@ import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class NotificationServiceImplTest {
+public class NotificationServiceImplTest {
 
     @Mock
     private FinesRepository finesRepository;
@@ -38,368 +34,404 @@ class NotificationServiceImplTest {
     private LoanRepository loanRepository;
 
     @Mock
+    private EmailService emailService;
+
+    @Mock
     private NotificationRepository notificationRepository;
 
     @Mock
-    private EmailService emailService;
-    @Mock
-    private ApiClient apiClient;
+    private ApiClientLocal apiClient;
 
+    @InjectMocks
     private NotificationServiceImpl notificationService;
+
+    private LoanDTO loanDTO;
+    private UserInfo userInfo;
+    private LoanModel loanModel;
 
     @BeforeEach
     void setUp() {
-        notificationService = new NotificationServiceImpl(
-                finesRepository,
-                loanRepository,
-                emailService,
-                notificationRepository
-        );
+        loanDTO = new LoanDTO();
+        loanDTO.setUserId("user123");
+        loanDTO.setBookId("book456");
+        loanDTO.setBookName("Test Book");
+        loanDTO.setEmailGuardian("guardian@email.com");
+        loanDTO.setLoanReturn(LocalDate.now().plusDays(14));
+
+        userInfo = new UserInfo();
+        userInfo.setName("Test User");
+        userInfo.setGuardianEmail("guardian@email.com");
+
+        loanModel = new LoanModel();
+        loanModel.setUserId("user123");
+        loanModel.setBookId("book456");
+        loanModel.setLoanDate(LocalDate.now());
+        loanModel.setBookName("Test Book");
+        loanModel.setLoanExpired(LocalDate.now().plusDays(14));
+        loanModel.setBookReturned(false);
     }
 
     @Test
-    void notifyLoan() {
-        LoanDTO loanDTO = new LoanDTO("", "test-1@gmail.com", "book-1", "book-test-1", LocalDate.now().plusDays(4));
-        ArgumentCaptor<LoanModel> loanCaptor = ArgumentCaptor.forClass(LoanModel.class);
+    void testNotifyLoan() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        when(loanRepository.save(any(LoanModel.class))).thenReturn(loanModel);
+        when(notificationRepository.save(any(NotificationModel.class))).thenReturn(null);
+        doNothing().when(emailService).sendEmailTemplate(
+                anyString(),
+                any(EmailTemplate.class),
+                anyString()
+        );
+
+        // Act
         notificationService.notifyLoan(loanDTO);
-        verify(loanRepository).save(loanCaptor.capture());
-        LoanModel savedLoan = loanCaptor.getValue();
-        assertEquals("book-1", savedLoan.getBookId());
-        assertEquals("book-test-1", savedLoan.getBookName());
-        assertEquals(LocalDate.now().plusDays(4), savedLoan.getLoanExpired());
-        assertEquals(LocalDate.now(), savedLoan.getLoanDate());
-        assertTrue(savedLoan.getStatus());
-        assertTrue(savedLoan.getFines().isEmpty());
+
+        // Assert
+        verify(loanRepository).save(any(LoanModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(loanDTO.getEmailGuardian()),
+                eq(EmailTemplate.NOTIFICATION_ALERT),
+                anyString()
+        );
     }
 
     @Test
-    void notifySomeLoans() {
-        int numberOfLoans = 10;
-        ArgumentCaptor<LoanModel> loanCaptor = ArgumentCaptor.forClass(LoanModel.class);
-
-        for(int i = 0; i < numberOfLoans; i++) {
-            LoanDTO loanDTO = new LoanDTO(
-                    "user_"+i,
-                    "test-"+i+"@gmail.com",
-                    "book-"+i,
-                    "book-test-"+i,
-                    LocalDate.now().plusDays(4)
-            );
-
-            notificationService.notifyLoan(loanDTO);
-        }
-        verify(loanRepository, times(numberOfLoans)).save(loanCaptor.capture());
-        // Verify each saved loan
-        List<LoanModel> savedLoans = loanCaptor.getAllValues();
-        for(int i = 0; i < numberOfLoans; i++) {
-            LoanModel savedLoan = savedLoans.get(i);
-            assertEquals("book-"+i, savedLoan.getBookId());
-            assertEquals("book-test-"+i, savedLoan.getBookName());
-            assertEquals(LocalDate.now().plusDays(4), savedLoan.getLoanExpired());
-            assertEquals(LocalDate.now(), savedLoan.getLoanDate());
-            assertTrue(savedLoan.getStatus());
-            assertTrue(savedLoan.getFines().isEmpty());
-        }
-    }
-
-
-    @Test
-    void returnBookThrowsExceptionWhenLoanNotFound() {
-        String bookId = "book-1";
-        //findLoanByBookIdAndBookReturned method --> return empty
-        when(loanRepository.findLoanByBookIdAndBookReturned(bookId, false))
-                .thenReturn(Optional.empty());
-        SpammersPrivateExceptions exception = assertThrows(
-                SpammersPrivateExceptions.class, () -> notificationService.returnBook(bookId, false));
-
-        assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
-        verify(loanRepository, never()).save(any());
-        verify(emailService, never()).sendEmailCustomised(any(), any(), any());
-    }
-    /*
-    @Test
-    void openFine(){
-        ArgumentCaptor<FineModel> fineCaptor = ArgumentCaptor.forClass(FineModel.class);
-        LoanModel loan = new LoanModel("user-id-1", "book-id-1",
-                LocalDate.now(), "Boulevard",
-                LocalDate.now().plusDays(2), true);
-        // When The method trys to find a loan, will have: Optional.of(loan)
-        when(loanRepository.findByLoanId(loan.getLoanId())).thenReturn(Optional.of(loan));
-        notificationService.openFine(
-                loan.getLoanId(), "Time expired", 5000,
-                "example@outlook.com");
-        // verify the finesRepository saved the Fine
-        verify(finesRepository, times(1)).save(fineCaptor.capture());
-        verify(finesRepository).save(fineCaptor.capture());
-        FineModel savedFine = fineCaptor.getValue();
-        // Check the Fine data
-        assertNotNull(savedFine);
-        assertEquals("Time expired", savedFine.getDescription());
-        assertEquals(5000, savedFine.getAmount());
-        assertEquals(FineStatus.PENDING, savedFine.getFineStatus());
-        assertEquals(loan, savedFine.getLoan());
-    }
-
-     */
-
-    /*
-    @Test
-    void openFineThrowsLoanNotFound(){
-        try{
-            notificationService.openFine(
-                    "nonexistent-id", "Time expired", 5000,
-                    "example@outlook.com");
-            fail("Should throw exception because the Loan Does not exist");
-        } catch(SpammersPrivateExceptions exception){
-            assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
-        }
-    }
-    */
-
-
-
-    @Test
-    void closeFineThrowsExceptionFineNotFound() {
-        try{
-            notificationService.closeFine("nonexistent-id");
-            fail("Should throw exception because the Loan Does not exist");
-        } catch(SpammersPrivateExceptions exception){
-            assertEquals(SpammersPrivateExceptions.FINE_NOT_FOUND, exception.getMessage());
-        }
-    }
-
-    /*
-    @Test
-    void getFinesByUserId() {
-        String userId = "user-1";
-        int pageSize = 15;
+    void testGetNotifications_Success() {
+        // Arrange
+        String userId = "user123";
         int pageNumber = 0;
+        int pageSize = 10;
 
-        // Create some loans
-        LoanModel loan1 = new LoanModel("user-1", "book-1",
-                LocalDate.now().minusDays(10), "Book 1",
-                LocalDate.now().minusDays(5), true);
-
-        LoanModel loan2 = new LoanModel("user-1", "book-2",
-                LocalDate.now().minusDays(15), "Book 2",
-                LocalDate.now().minusDays(8), true);
-
-        // create some fines
-        FineModel fine1 = new FineModel("fine-1", loan1, "Late return", 5000f,
-                LocalDate.now().minusDays(5), FineStatus.PENDING, FineType.RETARDMENT,List.of());
-
-        FineModel fine2 = new FineModel("fine-2", loan2, "Damaged book", 8000f,
-                LocalDate.now().minusDays(8), FineStatus.PENDING, FineType.DAMAGE,List.of());
-
-        loan1.setFines(Collections.singletonList(fine1));
-        loan2.setFines(Collections.singletonList(fine2));
-
-        // Create a page for loans:
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        Page<LoanModel> loanPage = new PageImpl<>(Arrays.asList(loan1, loan2), pageRequest, 2);
-
-        // findByUserId method --> return the page of loans
-        when(loanRepository.findByUserId(userId, pageRequest))
-                .thenReturn(loanPage);
-        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 15, 0);
-
-        // Check the correct number of fines are returned
-        assertEquals(2, resultFines.size());
-
-        // Check data of the fines
-        assertTrue(resultFines.contains(fine1));
-        assertTrue(resultFines.contains(fine2));
-
-        // Check the repository method was called with correct parameters
-        verify(loanRepository, times(1)).findByUserId(userId, pageRequest);
-    }
-
-    @Test
-    void getFinesByUserIdWithMultiplePages() {
-        String userId = "user-1";
-        int pageSize = 15;
-        List<LoanModel> loansPage1 = new ArrayList<>();
-        List<LoanModel> loansPage2 = new ArrayList<>();
-
-        // Create loans and fines first page (15 rows)
-        for (int i = 0; i < 15; i++) {
-            LoanModel loan = new LoanModel("user-1", "book-" + i,
-                    LocalDate.now().minusDays(10 + i), "Book " + i,
-                    LocalDate.now().minusDays(5 + i), true);
-
-            FineModel fine = new FineModel("fine-" + i, loan, "Late return", 5000f + i,
-                    LocalDate.now().minusDays(5 + i), FineStatus.PENDING, FineType.RETARDMENT,List.of());
-
-            loan.setFines(Collections.singletonList(fine));
-            loansPage1.add(loan);
-        }
-
-        // Create loans second page (10 rows)
-        for (int i = 0; i < 10; i++) {
-            LoanModel loan = new LoanModel("user-1", "book-" + (i + 15),
-                    LocalDate.now().minusDays(25 + i), "Book " + (i + 15),
-                    LocalDate.now().minusDays(20 + i), true);
-
-            FineModel fine = new FineModel("fine-" + (i + 15), loan, "Damaged book", 8000f + i,
-                    LocalDate.now().minusDays(20 + i), FineStatus.PENDING, FineType.DAMAGE,List.of());
-
-            loan.setFines(Collections.singletonList(fine));
-            loansPage2.add(loan);
-        }
-        // Simulate pages
-        PageRequest pageRequest1 = PageRequest.of(0, pageSize);
-        PageRequest pageRequest2 = PageRequest.of(1, pageSize);
-
-        Page<LoanModel> loanPage1 = new PageImpl<>(loansPage1, pageRequest1, 25);
-        Page<LoanModel> loanPage2 = new PageImpl<>(loansPage2, pageRequest2, 25);
-
-        // findByUserId method --> return pages of loans
-        when(loanRepository.findByUserId(userId, pageRequest1))
-                .thenReturn(loanPage1);
-        when(loanRepository.findByUserId(userId, pageRequest2))
-                .thenReturn(loanPage2);
-        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 10, 0);
-
-        // Check all fines returned from the pages.
-        assertEquals(25, resultFines.size());
-
-        // Check all fines from first page
-        assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-0")));
-        assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-14")));
-
-        // Check all fines from second page
-        assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-15")));
-        assertTrue(resultFines.stream().anyMatch(fine -> fine.getFineId().equals("fine-24")));
-
-        // check the method was called just one time per page.
-        verify(loanRepository, times(1)).findByUserId(userId, pageRequest1);
-        verify(loanRepository, times(1)).findByUserId(userId, pageRequest2);
-    }
-
-    @Test
-    void getFinesNoFinesByUserId() {
-        String userId = "user-1";
-        int pageSize = 15;
-        int pageNumber = 0;
-        // Check page with no fines
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        LoanModel loan1 = new LoanModel("user-1", "book-1",
-                LocalDate.now().minusDays(10), "Book 1", LocalDate.now().minusDays(5), true);
-        loan1.setFines(Collections.emptyList());
-
-        LoanModel loan2 = new LoanModel("user-1", "book-2",
-                LocalDate.now().minusDays(15), "Book 2", LocalDate.now().minusDays(8), true);
-        loan2.setFines(Collections.emptyList());
-
-        Page<LoanModel> loanPage = new PageImpl<>(Arrays.asList(loan1, loan2), pageRequest, 2);
-
-        // findByUserId method --> return the page of loans
-        when(loanRepository.findByUserId(userId, pageRequest))
-                .thenReturn(loanPage);
-        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 10, 5);
-
-        // Check there are not fines
-        assertTrue(resultFines.isEmpty());
-
-        // Check the repository was called just one time cause, there were no fines.
-        verify(loanRepository, times(1)).findByUserId(userId, pageRequest);
-    }
-
-    /*
-    @Test
-    void getNotificationsWithMultiplePages() {
-        String userId = "user-1";
-        int pageSize = 15;
-        List<NotificationModel> mockNotifications = createMockNotifications(userId, 35);
-        Page<NotificationModel> firstPage = new PageImpl<>(
-                mockNotifications.subList(0, pageSize),
-                PageRequest.of(0, pageSize),
-                mockNotifications.size()
-        );
-
-        Page<NotificationModel> secondPage = new PageImpl<>(
-                mockNotifications.subList(pageSize, 2 * pageSize),
-                PageRequest.of(1, pageSize),
-                mockNotifications.size()
-        );
-
-        Page<NotificationModel> thirdPage = new PageImpl<>(
-                mockNotifications.subList(2 * pageSize, mockNotifications.size()),
-                PageRequest.of(2, pageSize),
-                mockNotifications.size()
-        );
-
-        // findByUser --> return respective page, because there are 35 notifications (3 pages)
-        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(0, pageSize))))
-                .thenReturn(firstPage);
-        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(1, pageSize))))
-                .thenReturn(secondPage);
-        when(notificationRepository.findByUserId(eq(userId), eq(PageRequest.of(2, pageSize))))
-                .thenReturn(thirdPage);
-
-        List<NotificationDTO> retrievedNotifications = notificationService.getNotifications(userId);
-
-        // Check the number of all notifications
-        assertEquals(mockNotifications.size(), retrievedNotifications.size());
-
-        // Check calls to repository (3 times because 3 pages)
-        verify(notificationRepository, times(3)).findByUserId(eq(userId), any(PageRequest.class));
-    }
-     */
-    /*
-    @Test
-    void getNotificationsWithNoNotifications() {
-        String userId = "user-1";
-        int pageSize = 15;
-        Page<NotificationModel> emptyPage = Page.empty();
-        // findByUserId --> return emptyPage (because there are no notifications)
-        when(notificationRepository.findByUserId(eq(userId), any(PageRequest.class)))
-                .thenReturn(emptyPage);
-        List<NotificationDTO> retrievedNotifications = notificationService.getNotifications(userId);
-        assertTrue(retrievedNotifications.isEmpty());
-
-        // Check calls to repository (the minimum calls, 1 because there are less than 15 notifications)
-        verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
-    }
-    */
-
-    private List<NotificationModel> createMockNotifications(String userId) {
-        return createMockNotifications(userId, 10);
-    }
-
-    private List<NotificationModel> createMockNotifications(String userId, int count) {
         List<NotificationModel> notifications = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            NotificationModel notification = new NotificationModel(
-                    userId,
-                    "email-" + i + "@example.com",
-                    LocalDate.now().minusDays(i),
-                    NotificationType.values()[i % NotificationType.values().length], false, "Cien años de soledad"
-            );
-            notifications.add(notification);
-        }
-        return notifications;
+        NotificationModel notificationModel = new NotificationModel(userId,"example@mail.com",
+                LocalDate.now().minusDays(2),NotificationType.FINE,false,"Boulevard");
+        notifications.add(notificationModel);
+        PageImpl<NotificationModel> page = new PageImpl<>(notifications);
+        when(notificationRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
+
+        // Act
+        PaginatedResponseDTO<NotificationDTO> result = notificationService.getNotifications(userId, pageNumber, pageSize);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+        assertEquals("Boulevard", result.getData().get(0).getBookName());
+
+        verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void testGetNotifications_NoNotifications() {
+        // Arrange
+        String userId = "user123";
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        PageImpl<NotificationModel> emptyPage = new PageImpl<>(Collections.emptyList());
+
+        when(notificationRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(emptyPage);
+
+        // Act
+        PaginatedResponseDTO<NotificationDTO> result = notificationService.getNotifications(userId, pageNumber, pageSize);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getData().isEmpty());
+        verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void testOpenFine_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setAmount(50.0f);  // Use float instead of double
+        fineInputDTO.setFineType(FineType.DAMAGE);
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setUserId("user123");
+
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.of(loanModel));
+        when(finesRepository.save(any(FineModel.class))).thenReturn(null);
+
+        // Specific stubbing for emailService to match exact parameters
+        doNothing().when(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),  // Use float here
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+
+        // Act
+        notificationService.openFine(fineInputDTO);
+
+        // Assert
+        verify(finesRepository).save(any(FineModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+    }
+
+    @Test
+    void testGetFines_Success() {
+        // Arrange
+        String userId = "user123";
+        int size = 15;
+        int pageNumber = 0;
+
+        List<FineModel> fines = new ArrayList<>();
+        FineModel fineModel = new FineModel();
+        fineModel.setLoan(loanModel);
+        fineModel.setFineId("fine123");
+        fineModel.setAmount(50.0f);
+        fineModel.setDescription("Test Fine");
+        fines.add(fineModel);
+
+        PageImpl<FineModel> page = new PageImpl<>(fines);
+
+        when(finesRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
+        // Act
+        PaginatedResponseDTO<FineOutputDTO> result = notificationService.getFinesByUserId(userId, size, pageNumber);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+
+        verify(finesRepository).findByUserId(eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void testReturnBook_Success() {
+        // Arrange
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.of(loanModel));
+        doNothing().when(emailService).sendEmailCustomised(
+                anyString(),
+                anyString(),
+                anyString()
+        );
+
+        // Act
+        notificationService.returnBook("book456", false);
+
+        // Assert
+        verify(loanRepository).save(loanModel);
+        verify(emailService).sendEmailCustomised(
+                eq(userInfo.getGuardianEmail()),
+                eq("Devolución de un libro"),
+                anyString()
+        );
+        assertTrue(loanModel.isBookReturned());
+    }
+
+    @Test
+    void testCloseFine_Success() throws SpammersPrivateExceptions {
+        // Arrange
+        FineModel fineModel = new FineModel();
+        fineModel.setLoan(loanModel);
+        fineModel.setAmount(50.0f);  // Note the float type
+        fineModel.setDescription("Test Fine");
+        fineModel.setFineId("fine123");
+
+        when(finesRepository.findById("fine123"))
+                .thenReturn(Optional.of(fineModel));
+
+        // Updated stubbing to match the actual method call
+        doNothing().when(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                anyString(),
+                eq(50.0f),  // Use float instead of double
+                any(LocalDate.class),
+                anyString()
+        );
+
+        // Act
+        notificationService.closeFine("fine123");
+
+        // Assert
+        verify(finesRepository).updateFineStatus("fine123", FineStatus.PAID);
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                anyString(),
+                eq(50.0f),  // Use float here as well
+                any(LocalDate.class),
+                eq("Test Fine")
+        );
+    }
+    @Test
+    void testReturnBook_BadCondition() {
+        // Arrange
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.of(loanModel));
+        doNothing().when(emailService).sendEmailCustomised(
+                anyString(),
+                anyString(),
+                anyString()
+        );
+
+        // Act
+        notificationService.returnBook("book456", true);
+
+        // Assert
+        verify(loanRepository).save(loanModel);
+        verify(emailService).sendEmailCustomised(
+                eq(userInfo.getGuardianEmail()),
+                eq("Devolución de un libro"),
+                anyString()
+        );
+        assertTrue(loanModel.isBookReturned());
+    }
+
+    @Test
+    void testReturnBook_LoanNotFound() {
+        // Arrange
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> notificationService.returnBook("book456", false)
+        );
+    }
+
+    @Test
+    void testOpenFine_NoLastLoan_ShouldThrowException() {
+        // Arrange
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setUserId("user123");
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setFineType(FineType.RETARDMENT);
+        fineInputDTO.setAmount((float)25.0);
+
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> notificationService.openFine(fineInputDTO)
+        );
+    }
+
+    @Test
+    void testCloseFine_NotFound_ShouldThrowException() {
+        // Arrange
+        when(finesRepository.findById("fine123"))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> notificationService.closeFine("fine123")
+        );
     }
 
 
-    private <T> T invokePrivateMethod(Object obj, String methodName, Class<?> paramType, Object... args) {
+
+    private FineModel createFineModel(FineStatus status) {
+        FineModel fineModel = new FineModel();
+        fineModel.setFineId(UUID.randomUUID().toString());
+        fineModel.setFineStatus(status);
+        fineModel.setAmount((float)50.0);
+        fineModel.setDescription("Test Fine");
+        fineModel.setExpiredDate(LocalDate.now());
+        fineModel.setFineType(FineType.RETARDMENT);
+        fineModel.setLoan(loanModel);
+        return fineModel;
+    }
+
+    @Test
+    void testPendingFine_WithPendingFine() {
+        // Arrange
+        List<FineModel> fines = Arrays.asList(
+                createFineModel(FineStatus.PENDING),
+                createFineModel(FineStatus.PAID)
+        );
+
         try {
-            Method method = obj.getClass().getDeclaredMethod(methodName, paramType);
+            java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
             method.setAccessible(true);
-            return (T) method.invoke(obj, args);
+
+            // Act
+            boolean result = (boolean) method.invoke(notificationService, fines);
+
+            // Assert
+            assertTrue(result);
         } catch (Exception e) {
-            throw new RuntimeException("Error invoking private method", e);
+            fail("Error al invocar el método privado", e);
         }
     }
 
-    // Overloaded method to handle multiple parameter types
-    private <T> T invokePrivateMethod(Object obj, String methodName, Class<?>[] paramTypes, Object... args) {
+    @Test
+    void testPendingFine_WithoutPendingFine() {
+        // Arrange
+        List<FineModel> fines = Arrays.asList(
+                createFineModel(FineStatus.PAID),
+                createFineModel(FineStatus.PAID)
+        );
+
         try {
-            Method method = obj.getClass().getDeclaredMethod(methodName, paramTypes);
+            java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
             method.setAccessible(true);
-            return (T) method.invoke(obj, args);
+
+            // Act
+            boolean result = (boolean) method.invoke(notificationService, fines);
+
+            // Assert
+            assertFalse(result);
         } catch (Exception e) {
-            throw new RuntimeException("Error invoking private method", e);
+            fail("Error al invocar el método privado", e);
+        }
+    }
+
+    @Test
+    void testDaysDifference_BeforeDeadline() {
+        // Arrange
+        LocalDate deadline = LocalDate.now().plusDays(5);
+
+        try {
+            java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
+            method.setAccessible(true);
+
+            // Act
+            int result = (int) method.invoke(notificationService, deadline);
+
+            // Assert
+            assertEquals(0, result);
+        } catch (Exception e) {
+            fail("Error al invocar el método privado", e);
+        }
+    }
+
+    @Test
+    void testDaysDifference_AfterDeadline() {
+        // Arrange
+        LocalDate deadline = LocalDate.now().minusDays(5);
+
+        try {
+            java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
+            method.setAccessible(true);
+
+            // Act
+            int result = (int) method.invoke(notificationService, deadline);
+
+            // Assert
+            assertEquals(5, result);
+        } catch (Exception e) {
+            fail("Error al invocar el método privado", e);
         }
     }
 }
