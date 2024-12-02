@@ -15,4 +15,5 @@ public class FineInputDTO {
     private FineType fineType;
     private String bookId;
     private String userId;
+    private String description;
 }

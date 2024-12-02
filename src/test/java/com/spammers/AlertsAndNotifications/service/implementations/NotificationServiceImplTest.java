@@ -14,13 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -97,45 +96,51 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    void testCloseLoan_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    void testGetNotifications_Success() {
         // Arrange
-        when(loanRepository.findLoanByUserAndBookId("user123", "book456"))
-                .thenReturn(Optional.of(loanModel));
-        when(finesRepository.findByLoanId(any())).thenReturn(Collections.emptyList());
-        doNothing().when(emailService).sendEmailTemplate(
-                anyString(),
-                any(EmailTemplate.class),
-                anyString()
-        );
-        doNothing().when(loanRepository).delete(any(LoanModel.class));
+        String userId = "user123";
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        List<NotificationModel> notifications = new ArrayList<>();
+        NotificationModel notificationModel = new NotificationModel(userId,"example@mail.com",
+                LocalDate.now().minusDays(2),NotificationType.FINE,false,"Boulevard");
+        notifications.add(notificationModel);
+        PageImpl<NotificationModel> page = new PageImpl<>(notifications);
+        when(notificationRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
 
         // Act
-        notificationService.closeLoan("book456", "user123");
+        PaginatedResponseDTO<NotificationDTO> result = notificationService.getNotifications(userId, pageNumber, pageSize);
 
         // Assert
-        verify(loanRepository).delete(loanModel);
-        verify(notificationRepository).save(any(NotificationModel.class));
-        verify(emailService).sendEmailTemplate(
-                eq(userInfo.getGuardianEmail()),
-                eq(EmailTemplate.NOTIFICATION_ALERT),
-                anyString()
-        );
+        assertNotNull(result);
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+        assertEquals("Boulevard", result.getData().get(0).getBookName());
+
+        verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
     }
 
     @Test
-    void testCloseLoan_WithPendingFine_ShouldThrowException() {
+    void testGetNotifications_NoNotifications() {
         // Arrange
-        FineModel pendingFine = new FineModel();
-        pendingFine.setFineStatus(FineStatus.PENDING);
+        String userId = "user123";
+        int pageNumber = 0;
+        int pageSize = 10;
 
-        when(loanRepository.findLoanByUserAndBookId("user123", "book456"))
-                .thenReturn(Optional.of(loanModel));
-        when(finesRepository.findByLoanId(any())).thenReturn(Collections.singletonList(pendingFine));
+        PageImpl<NotificationModel> emptyPage = new PageImpl<>(Collections.emptyList());
 
-        // Act & Assert
-        assertThrows(SpammersPublicExceptions.class,
-                () -> notificationService.closeLoan("book456", "user123")
-        );
+        when(notificationRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(emptyPage);
+
+        // Act
+        PaginatedResponseDTO<NotificationDTO> result = notificationService.getNotifications(userId, pageNumber, pageSize);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getData().isEmpty());
+        verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
     }
 
     @Test
@@ -178,30 +183,33 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    void testGetNotifications() {
+    void testGetFines_Success() {
         // Arrange
-        List<NotificationModel> notifications = new ArrayList<>();
-        NotificationModel notification = new NotificationModel("user-123","guardian@email.com",LocalDate.now(),NotificationType.BOOK_LOAN);
-        notifications.add(notification);
+        String userId = "user123";
+        int size = 15;
+        int pageNumber = 0;
 
-        Page<NotificationModel> notificationPage = new PageImpl<>(notifications);
+        List<FineModel> fines = new ArrayList<>();
+        FineModel fineModel = new FineModel();
+        fineModel.setLoan(loanModel);
+        fineModel.setFineId("fine123");
+        fineModel.setAmount(50.0f);
+        fineModel.setDescription("Test Fine");
+        fines.add(fineModel);
 
-        when(notificationRepository.findByUserId(eq("user123"), any(PageRequest.class)))
-                .thenReturn(notificationPage);
+        PageImpl<FineModel> page = new PageImpl<>(fines);
 
+        when(finesRepository.findByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
         // Act
-        Map<String, Object> result = notificationService.getNotifications("user123", 0, 10);
+        PaginatedResponseDTO<FineOutputDTO> result = notificationService.getFinesByUserId(userId, size, pageNumber);
 
         // Assert
         assertNotNull(result);
-        assertTrue(result.containsKey("notifications"));
-        assertTrue(result.containsKey("currentPage"));
-        assertTrue(result.containsKey("totalItems"));
-        assertTrue(result.containsKey("totalPages"));
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
 
-        List<NotificationDTO> notificationDTOs = (List<NotificationDTO>) result.get("notifications");
-        assertFalse(notificationDTOs.isEmpty());
-        assertEquals("guardian@email.com", notificationDTOs.get(0).getEmailGuardian());
+        verify(finesRepository).findByUserId(eq(userId), any(Pageable.class));
     }
 
     @Test
@@ -302,28 +310,6 @@ public class NotificationServiceImplTest {
     }
 
     @Test
-    void testGetFines_Success() {
-        // Arrange
-        List<LoanModel> loans = new ArrayList<>();
-        loanModel.setFines(Arrays.asList(
-                createFineModel(FineStatus.PENDING),
-                createFineModel(FineStatus.PAID)
-        ));
-        loans.add(loanModel);
-
-        PageImpl<LoanModel> page = new PageImpl<>(loans);
-        when(loanRepository.findByUserId(eq("user123"), any(PageRequest.class)))
-                .thenReturn(page);
-
-        // Act
-        List<FineModel> result = notificationService.getFines("user123");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-    }
-
-    @Test
     void testOpenFine_NoLastLoan_ShouldThrowException() {
         // Arrange
         FineInputDTO fineInputDTO = new FineInputDTO();
@@ -353,60 +339,8 @@ public class NotificationServiceImplTest {
         );
     }
 
-    @Test
-    void testReturnAllActiveFines_Success() {
-        // Arrange
-        List<FineModel> fines = Arrays.asList(
-                createFineModel(FineStatus.PENDING),
-                createFineModel(FineStatus.PENDING)
-        );
-        Page<FineModel> finePage = new PageImpl<>(fines);
 
-        when(finesRepository.findByStatus(eq(FineStatus.PENDING), any(Pageable.class)))
-                .thenReturn(finePage);
 
-        // Act
-        Map<String, Object> result = notificationService.returnAllActiveFines(10, 0);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.containsKey("data"));
-        assertTrue(result.containsKey("currentPage"));
-        assertTrue(result.containsKey("totalPages"));
-        assertTrue(result.containsKey("totalItems"));
-
-        List<FineOutputDTO> fineOutputs = (List<FineOutputDTO>) result.get("data");
-        assertEquals(2, fineOutputs.size());
-    }
-
-    @Test
-    void testReturnAllActiveFinesBetweenDate_Success() {
-        // Arrange
-        LocalDate testDate = LocalDate.now();
-        List<FineModel> fines = Arrays.asList(
-                createFineModel(FineStatus.PENDING),
-                createFineModel(FineStatus.PENDING)
-        );
-        Page<FineModel> finePage = new PageImpl<>(fines);
-
-        when(finesRepository.findByStatusAndDate(eq(FineStatus.PENDING), eq(testDate), any(Pageable.class)))
-                .thenReturn(finePage);
-
-        // Act
-        Map<String, Object> result = notificationService.returnAllActiveFinesBetweenDate(testDate, 10, 0);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.containsKey("data"));
-        assertTrue(result.containsKey("currentPage"));
-        assertTrue(result.containsKey("totalPages"));
-        assertTrue(result.containsKey("totalItems"));
-
-        List<FineOutputDTO> fineOutputs = (List<FineOutputDTO>) result.get("data");
-        assertEquals(2, fineOutputs.size());
-    }
-
-    // Método auxiliar para crear FineModel para pruebas
     private FineModel createFineModel(FineStatus status) {
         FineModel fineModel = new FineModel();
         fineModel.setFineId(UUID.randomUUID().toString());
@@ -419,7 +353,6 @@ public class NotificationServiceImplTest {
         return fineModel;
     }
 
-    // Test privados (métodos helper)
     @Test
     void testPendingFine_WithPendingFine() {
         // Arrange
@@ -428,7 +361,6 @@ public class NotificationServiceImplTest {
                 createFineModel(FineStatus.PAID)
         );
 
-        // Usar reflexión para acceder al método privado
         try {
             java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
             method.setAccessible(true);
@@ -451,7 +383,6 @@ public class NotificationServiceImplTest {
                 createFineModel(FineStatus.PAID)
         );
 
-        // Usar reflexión para acceder al método privado
         try {
             java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
             method.setAccessible(true);
@@ -471,7 +402,6 @@ public class NotificationServiceImplTest {
         // Arrange
         LocalDate deadline = LocalDate.now().plusDays(5);
 
-        // Usar reflexión para acceder al método privado
         try {
             java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
             method.setAccessible(true);
@@ -491,7 +421,6 @@ public class NotificationServiceImplTest {
         // Arrange
         LocalDate deadline = LocalDate.now().minusDays(5);
 
-        // Usar reflexión para acceder al método privado
         try {
             java.lang.reflect.Method method = NotificationServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
             method.setAccessible(true);

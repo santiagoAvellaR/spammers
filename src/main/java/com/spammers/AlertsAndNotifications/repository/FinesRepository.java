@@ -1,6 +1,7 @@
 package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
+import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import org.springframework.data.domain.Page;
@@ -83,4 +84,6 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
             @Param("givenDate") LocalDate givenDate,
             Pageable pageable);
 
+    @Query("SELECT f FROM FineModel f WHERE f.loan.userId = :givenUserId")
+    Page<FineModel> findByUserId(@Param("givenUserId") String givenUserId, Pageable pageable);
 }

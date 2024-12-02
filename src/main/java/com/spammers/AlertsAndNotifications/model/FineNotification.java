@@ -22,8 +22,8 @@ public class FineNotification extends NotificationModel {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private FineModel fine;
 
-    public FineNotification(String studentId, String emailGuardian, LocalDate sendDate, NotificationType notificationType, FineModel fine) {
-        super(studentId, emailGuardian, sendDate, notificationType);
+    public FineNotification(String studentId, String emailGuardian, LocalDate sendDate, NotificationType notificationType, FineModel fine, boolean hasBeenSeen, String bookName) {
+        super(studentId, emailGuardian, sendDate, notificationType, hasBeenSeen, bookName);
         this.fine = fine;
     }
 }
