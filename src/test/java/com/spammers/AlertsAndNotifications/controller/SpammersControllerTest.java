@@ -43,7 +43,7 @@ class SpammersControllerTest {
         assertEquals(expectedNotifications, actualNotifications);
         verify(notificationService).getNotifications(userId);
     }
-     */
+
 
     @Test
     void testGetFines() {
@@ -61,6 +61,7 @@ class SpammersControllerTest {
         verify(notificationService).getFinesByUserId(userId);
     }
 
+     */
     @Test
     void testNotifyLoan() {
         LoanDTO loanDTO = new LoanDTO();

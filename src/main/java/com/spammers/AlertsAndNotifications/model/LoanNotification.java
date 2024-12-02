@@ -20,8 +20,8 @@ public class LoanNotification extends NotificationModel {
     private LoanModel loan;
 
 
-    public LoanNotification(String studentId, String emailGuardian, LocalDate sentDate, NotificationType notificationType, LoanModel loan, boolean hasBeenSeen) {
-        super(studentId, emailGuardian, sentDate, notificationType, hasBeenSeen);
+    public LoanNotification(String studentId, String emailGuardian, LocalDate sentDate, NotificationType notificationType, LoanModel loan, boolean hasBeenSeen, String bookName) {
+        super(studentId, emailGuardian, sentDate, notificationType, hasBeenSeen, bookName);
         this.loan = loan;
     }
 }

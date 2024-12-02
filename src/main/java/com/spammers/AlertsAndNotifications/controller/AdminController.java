@@ -21,13 +21,14 @@ public class AdminController {
 
     @GetMapping("/loans-about-expire")
     @ResponseStatus(HttpStatus.OK)
-    public PaginatedResponseDTO<FineOutputDTO> getLoansAboutExpire(@RequestParam LocalDate date, @RequestParam int page, int size){
+    public PaginatedResponseDTO<FineOutputDTO> getPendingFinesByDate(@RequestParam LocalDate date,
+                                                                     @RequestParam int page, @RequestParam int size){
         return adminService.returnAllActiveFinesBetweenDate(date, size, page);
     }
 
     @GetMapping("/fines-pending")
     @ResponseStatus(HttpStatus.OK)
-    public PaginatedResponseDTO<FineOutputDTO> getFinesPending(@RequestParam int page, int size){
+    public PaginatedResponseDTO<FineOutputDTO> getPendingFines(@RequestParam int page, @RequestParam int size){
         return adminService.returnAllActiveFines(page, size);
     }
 }

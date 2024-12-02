@@ -29,14 +29,19 @@ public class NotificationModel {
     @Column(name="type", nullable = false)
     private NotificationType notificationType;
 
-    @Column(name = "hasBeenSeen", nullable = false)
+    @Column(name = "hasBeenSeen", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean hasBeenSeen;
 
-    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type, boolean hasBeenSeen) {
+    @Column(name = "bookName", nullable = false)
+    private String bookName;
+
+    public NotificationModel(String studentId, String emailGuardian, LocalDate sendDate, NotificationType type, boolean hasBeenSeen, String bookName) {
         this.studentId = studentId;
         this.emailGuardian = emailGuardian;
         this.sentDate = sendDate;
         this.notificationType = type;
         this.hasBeenSeen = hasBeenSeen;
+        this.bookName = bookName;
     }
+
 }

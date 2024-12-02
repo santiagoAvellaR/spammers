@@ -82,7 +82,7 @@ public class LoanExpiredNotification {
                 , userInfo.getName(), loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Expiración préstamo libro", emailBody);
         NotificationModel notification = new LoanNotification(loan.getUserId(), userInfo.getGuardianEmail()
-                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED,loan, false);
+                , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED,loan, false, loan.getBookName());
         notificationRepository.save(notification);
         changeLoanEmailExpiredSent(loan);
     }

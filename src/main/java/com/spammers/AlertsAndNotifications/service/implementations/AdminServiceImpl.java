@@ -13,9 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -23,36 +21,33 @@ public class AdminServiceImpl implements AdminService {
 
     private final FinesRepository finesRepository;
 
-    private FineOutputDTO fineModelToOutputDTO(FineModel fineModel){
-        return new FineOutputDTO(fineModel.getFineId(), fineModel.getDescription(), fineModel.getAmount(),
-                fineModel.getFineStatus(), fineModel.getFineType(), fineModel.getExpiredDate(), fineModel.getLoan().getBookName());
-    }
-
-    private PaginatedResponseDTO<FineOutputDTO> encapsulateFineModelOnDTO(Page<FineModel> page){
-        List<FineOutputDTO> fineOutputDTOList = page.getContent().stream()
-                .map(this::fineModelToOutputDTO)
-                .toList();
-
-        return new PaginatedResponseDTO<>(
-                fineOutputDTOList,
-                page.getNumber(),
-                page.getTotalPages(),
-                page.getTotalElements()
-        );
-    }
-
+    /**
+     * Retrieves all active fines (with status PENDING) and returns them in a paginated response.
+     *
+     * @param pageSize The number of records per page.
+     * @param pageNumber The page number to retrieve.
+     * @return A PaginatedResponseDTO containing the list of active fines and pagination details.
+     */
     @Override
     public PaginatedResponseDTO<FineOutputDTO> returnAllActiveFines(int pageSize, int pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<FineModel> page = finesRepository.findByStatus(FineStatus.PENDING, pageable);
-        return encapsulateFineModelOnDTO(page);
+        return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
 
-
+    /**
+     * Retrieves all active fines (with status PENDING) within a specific date
+     * and returns them in a paginated response.
+     *
+     * @param date The date to filter fines, according to the year and month of the date.
+     * @param pageSize The number of records per page.
+     * @param pageNumber The page number to retrieve.
+     * @return A PaginatedResponseDTO containing the list of active fines and pagination details.
+     */
     @Override
     public PaginatedResponseDTO<FineOutputDTO> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
-        return encapsulateFineModelOnDTO(page);
+        return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
 }
