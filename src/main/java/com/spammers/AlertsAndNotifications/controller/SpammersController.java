@@ -92,13 +92,12 @@ public class SpammersController {
      * This method handles the closing of a fine for a given user.
      * It marks the fine as closed based on the provided fine ID.
      *
-     * @param userId The ID of the user whose fine is being closed.
      * @param fineId The ID of the fine that is being closed.
      * @return A message indicating that the fine has been successfully closed.
      */
-    @PutMapping("/users/{userId}/fines/{fineId}/close")
+    @PutMapping("/users/fines/{fineId}/close")
     @ResponseStatus(HttpStatus.OK)
-    public String closeFine(@PathVariable String userId, @PathVariable String fineId) {
+    public String closeFine(@PathVariable String fineId) {
         notificationService.closeFine(fineId);
         return "Fine Closed";
     }
