@@ -4,6 +4,8 @@ package com.spammers.AlertsAndNotifications.controller;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
+import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,19 @@ public class SpammersController {
     private final NotificationService notificationService;
 
     /**
-     * This method returns the notifications of a given user
-     * @param userId The user id
-     * @return the notifications associated to the user.
+     * This method returns the notifications of a given user.
+     *
+     * @param userId The user ID.
+     * @param page   The page number for pagination (zero-based index).
+     * @param size   The number of items per page.
+     * @return A map containing the notifications associated with the user.
      */
     @GetMapping("/users/{userId}/notifications")
     @ResponseStatus(HttpStatus.OK)
-    public Map<String, Object> getNotifications(@RequestParam String userId, @RequestParam int page, @RequestParam int size) {
+    public PaginatedResponseDTO<NotificationDTO> getNotifications(
+            @PathVariable("userId") String userId,
+            @RequestParam int page,
+            @RequestParam int size) {
         return notificationService.getNotifications(userId, page, size);
     }
 
@@ -37,9 +45,12 @@ public class SpammersController {
      * @return the fines of the user.
      */
     @GetMapping("/users/{userId}/fines")
-    @ResponseStatus(HttpStatus.OK)// TODO --> Debería usar paginacion al igual que todo metodo de consulta
-    public List<FineModel> getFines(@PathVariable String userId){
-        return notificationService.getFines(userId);
+    @ResponseStatus(HttpStatus.OK)
+    public PaginatedResponseDTO<FineOutputDTO> getFines(
+            @PathVariable("userId") String userId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        return notificationService.getFinesByUserId(userId, page, size);
     }
 
     /**
@@ -102,6 +113,4 @@ public class SpammersController {
         notificationService.closeFine(fineId);
         return "Fine Closed";
     }
-
-
 }

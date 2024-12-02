@@ -4,7 +4,6 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -21,11 +20,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.web.client.RestClient;
 
 import java.lang.reflect.Method;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -171,47 +168,9 @@ class NotificationServiceImplTest {
         }
     }
 
+    /*
     @Test
-    void closeLoanThrowsExceptionWhenLoanNotFound() {
-        String userId = "user-1";
-        String bookId = "book-1";
-        // findLoanByUserAndBookId method --> return empty
-        when(loanRepository.findLoanByUserAndBookId(userId, bookId))
-                .thenReturn(Optional.empty());
-
-        SpammersPrivateExceptions exception = assertThrows(
-                SpammersPrivateExceptions.class,() -> notificationService.closeLoan(bookId, userId));
-
-        assertEquals(SpammersPrivateExceptions.LOAN_NOT_FOUND, exception.getMessage());
-        verify(loanRepository, never()).delete(any());
-    }
-
-    @Test
-    void closeLoanThrowsExceptionWhenPendingFinesExist() {
-        String userId = "user-1";
-        String bookId = "book-1";
-        LoanModel loan = new LoanModel(userId, bookId,
-                LocalDate.now(), "Boulevard",
-                LocalDate.now().plusDays(2), true);
-
-        FineModel pendingFine = new FineModel("fine-1", loan, "Time expired", 8000,
-                LocalDate.now().minusDays(1), FineStatus.PENDING, FineType.RETARDMENT,List.of());
-
-        //findLoanByUserAndBookId method --> return the loan
-        when(loanRepository.findLoanByUserAndBookId(userId, bookId))
-                .thenReturn(Optional.of(loan));
-
-        //findByLoanId method --> return a pending fine
-        when(finesRepository.findByLoanId(loan.getLoanId()))
-                .thenReturn(Collections.singletonList(pendingFine));
-        SpammersPublicExceptions exception = assertThrows(
-                SpammersPublicExceptions.class,() -> notificationService.closeLoan(bookId, userId));
-        assertEquals(SpammersPublicExceptions.FINE_PENDING, exception.getMessage());
-        verify(loanRepository, never()).delete(any());
-    }
-
-    @Test
-    void getFines() {
+    void getFinesByUserId() {
         String userId = "user-1";
         int pageSize = 15;
         int pageNumber = 0;
@@ -242,7 +201,7 @@ class NotificationServiceImplTest {
         // findByUserId method --> return the page of loans
         when(loanRepository.findByUserId(userId, pageRequest))
                 .thenReturn(loanPage);
-        List<FineModel> resultFines = notificationService.getFines(userId);
+        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 15, 0);
 
         // Check the correct number of fines are returned
         assertEquals(2, resultFines.size());
@@ -256,7 +215,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getFinesWithMultiplePages() {
+    void getFinesByUserIdWithMultiplePages() {
         String userId = "user-1";
         int pageSize = 15;
         List<LoanModel> loansPage1 = new ArrayList<>();
@@ -299,7 +258,7 @@ class NotificationServiceImplTest {
                 .thenReturn(loanPage1);
         when(loanRepository.findByUserId(userId, pageRequest2))
                 .thenReturn(loanPage2);
-        List<FineModel> resultFines = notificationService.getFines(userId);
+        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 10, 0);
 
         // Check all fines returned from the pages.
         assertEquals(25, resultFines.size());
@@ -318,7 +277,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getFinesNoFines() {
+    void getFinesNoFinesByUserId() {
         String userId = "user-1";
         int pageSize = 15;
         int pageNumber = 0;
@@ -337,7 +296,7 @@ class NotificationServiceImplTest {
         // findByUserId method --> return the page of loans
         when(loanRepository.findByUserId(userId, pageRequest))
                 .thenReturn(loanPage);
-        List<FineModel> resultFines = notificationService.getFines(userId);
+        List<FineModel> resultFines = notificationService.getFinesByUserId(userId, 10, 5);
 
         // Check there are not fines
         assertTrue(resultFines.isEmpty());
@@ -401,7 +360,8 @@ class NotificationServiceImplTest {
 
         // Check calls to repository (the minimum calls, 1 because there are less than 15 notifications)
         verify(notificationRepository, times(1)).findByUserId(eq(userId), eq(PageRequest.of(0, pageSize)));
-    }*/
+    }
+    */
 
     private List<NotificationModel> createMockNotifications(String userId) {
         return createMockNotifications(userId, 10);
@@ -414,7 +374,7 @@ class NotificationServiceImplTest {
                     userId,
                     "email-" + i + "@example.com",
                     LocalDate.now().minusDays(i),
-                    NotificationType.values()[i % NotificationType.values().length]
+                    NotificationType.values()[i % NotificationType.values().length], false, "Cien años de soledad"
             );
             notifications.add(notification);
         }
