@@ -1,26 +1,33 @@
 package com.spammers.AlertsAndNotifications.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spammers.AlertsAndNotifications.model.dto.FineInputDTO;
 import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
 import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
+import com.spammers.AlertsAndNotifications.service.interfaces.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class AdminControllerTest {
@@ -30,7 +37,6 @@ class AdminControllerTest {
 
     @InjectMocks
     private AdminController adminController;
-
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -143,4 +149,72 @@ class AdminControllerTest {
 
                 verify(adminService).returnAllActiveFines(eq(page), eq(size));
     }
+    @Test
+    void testNotifyLoan_Success() throws Exception {
+        // Arrange
+        LoanDTO loanDTO = new LoanDTO();
+        loanDTO.setUserId("user123");
+        loanDTO.setBookId("book456");
+
+        // Act & Assert
+        mockMvc.perform(post("/notifications/notify-create-loan")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(loanDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Notification Sent!"));
+
+        // Verify service method was called
+        verify(adminService).notifyLoan(any(LoanDTO.class));
+    }
+    @Test
+    void testReturnBook_Success() throws Exception {
+        // Arrange
+        String bookId = "book123";
+        boolean returnedInBadCondition = false;
+
+        // Act & Assert
+        mockMvc.perform(post("/notifications/notify-return-loan")
+                        .param("bookId", bookId)
+                        .param("returnedInBadCondition", String.valueOf(returnedInBadCondition)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Book Returned"));
+
+        // Verify service method was called
+        verify(adminService).returnBook(eq(bookId), eq(returnedInBadCondition));
+    }
+
+
+    @Test
+    void testOpenFine_Success() throws Exception {
+        // Arrange
+        String userId = "user123";
+        FineInputDTO fineDTO = new FineInputDTO();
+        fineDTO.setAmount(50.0f);
+
+        // Act & Assert
+        mockMvc.perform(post("/notifications/users/{userId}/fines/create", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(fineDTO)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Fine Created"));
+
+        // Verify service method was called
+        verify(adminService).openFine(any(FineInputDTO.class));
+    }
+
+    @Test
+    void testCloseFine_Success() throws Exception {
+        // Arrange
+        String fineId = "fine123";
+
+        // Act & Assert
+        mockMvc.perform(put("/notifications/users/fines/{fineId}/close", fineId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Fine Closed"));
+
+        // Verify service method was called
+        verify(adminService).closeFine(eq(fineId));
+    }
+
+
 }
