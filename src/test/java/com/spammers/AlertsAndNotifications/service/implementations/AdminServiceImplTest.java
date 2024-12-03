@@ -1,11 +1,20 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.NotificationModel;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
+import com.spammers.AlertsAndNotifications.model.enums.EmailTemplate;
+import com.spammers.AlertsAndNotifications.model.enums.FineDescription;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
+import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
+import com.spammers.AlertsAndNotifications.repository.LoanRepository;
+import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
+import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,21 +26,119 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.Optional;
 
-    @ExtendWith(MockitoExtension.class)
-    public class AdminServiceImplTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class AdminServiceImplTest {
 
     @Mock
     private FinesRepository finesRepository;
 
     @InjectMocks
     private AdminServiceImpl adminService;
+    @Mock
+    private LoanRepository loanRepository;
 
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
+    private ApiClientLocal apiClient;
+
+
+    private LoanDTO loanDTO;
+    private UserInfo userInfo;
+    private LoanModel loanModel;
+    @BeforeEach
+    void setUp() {
+        loanDTO = new LoanDTO();
+        loanDTO.setUserId("user123");
+        loanDTO.setBookId("book456");
+        loanDTO.setBookName("Test Book");
+        loanDTO.setEmailGuardian("guardian@email.com");
+        loanDTO.setLoanReturn(LocalDate.now().plusDays(14));
+
+        userInfo = new UserInfo();
+        userInfo.setName("Test User");
+        userInfo.setGuardianEmail("guardian@email.com");
+
+        loanModel = new LoanModel();
+        loanModel.setUserId("user123");
+        loanModel.setBookId("book456");
+        loanModel.setLoanDate(LocalDate.now());
+        loanModel.setBookName("Test Book");
+        loanModel.setLoanExpired(LocalDate.now().plusDays(14));
+        loanModel.setBookReturned(false);
+    }
+
+    @Test
+    void testNotifyLoan() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        when(loanRepository.save(any(LoanModel.class))).thenReturn(loanModel);
+        when(notificationRepository.save(any(NotificationModel.class))).thenReturn(null);
+        doNothing().when(emailService).sendEmailTemplate(
+                anyString(),
+                any(EmailTemplate.class),
+                anyString()
+        );
+
+        // Act
+        adminService.notifyLoan(loanDTO);
+
+        // Assert
+        verify(loanRepository).save(any(LoanModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(loanDTO.getEmailGuardian()),
+                eq(EmailTemplate.NOTIFICATION_ALERT),
+                anyString()
+        );
+    }
+    @Test
+    void testOpenFine_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setAmount(50.0f);  // Use float instead of double
+        fineInputDTO.setFineType(FineType.DAMAGE);
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setUserId("user123");
+
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.of(loanModel));
+        when(finesRepository.save(any(FineModel.class))).thenReturn(null);
+
+        // Specific stubbing for emailService to match exact parameters
+        doNothing().when(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),  // Use float here
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+
+        // Act
+        adminService.openFine(fineInputDTO);
+
+        // Assert
+        verify(finesRepository).save(any(FineModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+    }
     @Test
     void testReturnAllActiveFines_Success() {
         int pageSize = 10;
@@ -64,7 +171,7 @@ import static org.mockito.Mockito.when;
         PageImpl<FineModel> page = new PageImpl<>(fines);
         when(finesRepository.findByStatus(eq(FineStatus.PENDING), any(Pageable.class)))
                 .thenReturn(page);
-        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageSize, pageNumber);
+        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageNumber, pageSize);
         assertNotNull(result);
         assertNotNull(result.getData());
         assertEquals(2, result.getData().size());
@@ -84,7 +191,7 @@ import static org.mockito.Mockito.when;
         PageImpl<FineModel> emptyPage = new PageImpl<>(Collections.emptyList());
         when(finesRepository.findByStatus(eq(FineStatus.PENDING), any(Pageable.class)))
                 .thenReturn(emptyPage);
-        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageSize, pageNumber);
+        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageNumber, pageSize);
         assertNotNull(result);
         assertTrue(result.getData().isEmpty());
         verify(finesRepository).findByStatus(eq(FineStatus.PENDING), any(Pageable.class));
