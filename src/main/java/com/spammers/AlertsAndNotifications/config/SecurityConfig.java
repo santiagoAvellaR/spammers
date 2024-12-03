@@ -17,8 +17,11 @@ public class SecurityConfig {
         return security
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll().
-                                anyRequest().authenticated())
+                        request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                                        .requestMatchers("/notifications/admin/**").hasRole("ADMIN")
+                                        .requestMatchers("/notifications/user/**").hasRole("STUDENT").
+
+                        anyRequest().authenticated())
                 //.formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
