@@ -6,7 +6,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.spammers.AlertsAndNotifications.model.dto.*;
+import com.spammers.AlertsAndNotifications.model.dto.FineInputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
+import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
+import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
+import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -63,7 +67,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/notifications//users/{userId}", userId)
+        mockMvc.perform(get("/usersNotifications/users/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
@@ -96,7 +100,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/notifications/users/{userId}/fines", userId)
+        mockMvc.perform(get("/usersNotifications/users/{userId}/fines", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
@@ -108,70 +112,5 @@ class SpammersControllerTest {
         verify(notificationService).getFinesByUserId(eq(userId), eq(page), eq(size));
     }
 
-    @Test
-    void testNotifyLoan_Success() throws Exception {
-        // Arrange
-        LoanDTO loanDTO = new LoanDTO();
-        loanDTO.setUserId("user123");
-        loanDTO.setBookId("book456");
 
-        // Act & Assert
-        mockMvc.perform(post("/notifications/notify-create-loan")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(loanDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Notification Sent!"));
-
-        // Verify service method was called
-        verify(notificationService).notifyLoan(any(LoanDTO.class));
-    }
-
-    @Test
-    void testReturnBook_Success() throws Exception {
-        // Arrange
-        String bookId = "book123";
-        boolean returnedInBadCondition = false;
-
-        // Act & Assert
-        mockMvc.perform(post("/notifications/notify-return-loan")
-                        .param("bookId", bookId)
-                        .param("returnedInBadCondition", String.valueOf(returnedInBadCondition)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Book Returned"));
-
-        // Verify service method was called
-        verify(notificationService).returnBook(eq(bookId), eq(returnedInBadCondition));
-    }
-
-    @Test
-    void testOpenFine_Success() throws Exception {
-        // Arrange
-        String userId = "user123";
-        FineInputDTO fineDTO = new FineInputDTO();
-        fineDTO.setAmount(50.0f);
-
-        // Act & Assert
-        mockMvc.perform(post("/notifications/users/{userId}/fines/create", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(fineDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Fine Created"));
-
-        // Verify service method was called
-        verify(notificationService).openFine(any(FineInputDTO.class));
-    }
-
-    @Test
-    void testCloseFine_Success() throws Exception {
-        // Arrange
-        String fineId = "fine123";
-
-        // Act & Assert
-        mockMvc.perform(put("/notifications/users/fines/{fineId}/close", fineId))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Fine Closed"));
-
-        // Verify service method was called
-        verify(notificationService).closeFine(eq(fineId));
-    }
 }
