@@ -36,15 +36,18 @@ public class ApiClient {
         return null;
     }
     public boolean validateToken(String token){
-        ResponseEntity<HttpStatus> validateClient = restClient.get()
-                .uri(APIAUTHURL + "/auth/session?authorization=" + token)
+        System.out.println("token = " + token);
+        ResponseEntity<?> validateClient = restClient.get()
+                .uri(APIAUTHURL + "/auth/session")
+                .header("AUTHORIZATION","Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .toEntity(HttpStatus.class);
+                .toEntity(Object.class);
+        System.out.println("validateClient = " + validateClient);
         if(validateClient.getStatusCode().is2xxSuccessful()){
             return true;
         }
-        throw new RuntimeException("No esta autorizado");
+        return false;
     }
 
 }
