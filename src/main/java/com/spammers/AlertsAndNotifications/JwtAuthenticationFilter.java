@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (payload.contains("\"role\":")) {
             int startIndex = payload.indexOf("\"role\":") + 7;
             int endIndex = payload.indexOf("\"", startIndex + 1);
-            String role = payload.substring(startIndex + 1, endIndex);
+            String role = payload.substring(startIndex + 1, endIndex).toUpperCase();
             System.out.println("Role: " + role);
             return role;
         } else {
