@@ -63,7 +63,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/notifications/users/{userId}/notifications", userId)
+        mockMvc.perform(get("/notifications//users/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
