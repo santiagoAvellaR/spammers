@@ -142,7 +142,7 @@ public class NotificationServiceImplTest {
         when(finesRepository.findByUserId(eq(userId), any(Pageable.class)))
                 .thenReturn(page);
         // Act
-        PaginatedResponseDTO<FineOutputDTO> result = notificationService.getFinesByUserId(userId, size, pageNumber);
+        PaginatedResponseDTO<FineOutputDTO> result = notificationService.getFinesByUserId(userId, pageNumber, size);
 
         // Assert
         assertNotNull(result);

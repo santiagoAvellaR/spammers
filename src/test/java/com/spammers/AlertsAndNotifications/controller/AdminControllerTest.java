@@ -157,7 +157,7 @@ class AdminControllerTest {
         loanDTO.setBookId("book456");
 
         // Act & Assert
-        mockMvc.perform(post("/notifications/notify-create-loan")
+        mockMvc.perform(post("/notifications/admin/notify-create-loan")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loanDTO)))
                 .andExpect(status().isOk())
@@ -173,7 +173,7 @@ class AdminControllerTest {
         boolean returnedInBadCondition = false;
 
         // Act & Assert
-        mockMvc.perform(post("/notifications/notify-return-loan")
+        mockMvc.perform(post("/notifications/admin/notify-return-loan")
                         .param("bookId", bookId)
                         .param("returnedInBadCondition", String.valueOf(returnedInBadCondition)))
                 .andExpect(status().isOk())
@@ -192,7 +192,7 @@ class AdminControllerTest {
         fineDTO.setAmount(50.0f);
 
         // Act & Assert
-        mockMvc.perform(post("/notifications/users/{userId}/fines/create", userId)
+        mockMvc.perform(post("/notifications/admin/users/{userId}/fines/create", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(fineDTO)))
                 .andExpect(status().isOk())
@@ -208,7 +208,7 @@ class AdminControllerTest {
         String fineId = "fine123";
 
         // Act & Assert
-        mockMvc.perform(put("/notifications/users/fines/{fineId}/close", fineId))
+        mockMvc.perform(put("/notifications/admin/users/fines/{fineId}/close", fineId))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Fine Closed"));
 

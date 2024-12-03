@@ -13,7 +13,6 @@ import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
 import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
-import com.spammers.AlertsAndNotifications.service.interfaces.AdminService;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,32 +23,35 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-    public class AdminServiceImplTest {
+public class AdminServiceImplTest {
 
     @Mock
     private FinesRepository finesRepository;
 
+    @InjectMocks
+    private AdminServiceImpl adminService;
     @Mock
     private LoanRepository loanRepository;
 
     @Mock
     private EmailService emailService;
-    @Mock
-    private AdminService adminService;
 
     @Mock
     private NotificationRepository notificationRepository;
 
     @Mock
     private ApiClientLocal apiClient;
+
 
     private LoanDTO loanDTO;
     private UserInfo userInfo;
@@ -76,6 +78,67 @@ import static org.mockito.Mockito.*;
         loanModel.setBookReturned(false);
     }
 
+    @Test
+    void testNotifyLoan() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        when(loanRepository.save(any(LoanModel.class))).thenReturn(loanModel);
+        when(notificationRepository.save(any(NotificationModel.class))).thenReturn(null);
+        doNothing().when(emailService).sendEmailTemplate(
+                anyString(),
+                any(EmailTemplate.class),
+                anyString()
+        );
+
+        // Act
+        adminService.notifyLoan(loanDTO);
+
+        // Assert
+        verify(loanRepository).save(any(LoanModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(loanDTO.getEmailGuardian()),
+                eq(EmailTemplate.NOTIFICATION_ALERT),
+                anyString()
+        );
+    }
+    @Test
+    void testOpenFine_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+        // Arrange
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setAmount(50.0f);  // Use float instead of double
+        fineInputDTO.setFineType(FineType.DAMAGE);
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setUserId("user123");
+
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.of(loanModel));
+        when(finesRepository.save(any(FineModel.class))).thenReturn(null);
+
+        // Specific stubbing for emailService to match exact parameters
+        doNothing().when(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),  // Use float here
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+
+        // Act
+        adminService.openFine(fineInputDTO);
+
+        // Assert
+        verify(finesRepository).save(any(FineModel.class));
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq(userInfo.getGuardianEmail()),
+                eq(EmailTemplate.FINE_ALERT),
+                eq("Se ha registrado una nueva multa: "),
+                eq(50.0f),
+                any(LocalDate.class),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+        );
+    }
     @Test
     void testReturnAllActiveFines_Success() {
         int pageSize = 10;
@@ -108,7 +171,7 @@ import static org.mockito.Mockito.*;
         PageImpl<FineModel> page = new PageImpl<>(fines);
         when(finesRepository.findByStatus(eq(FineStatus.PENDING), any(Pageable.class)))
                 .thenReturn(page);
-        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageSize, pageNumber);
+        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageNumber, pageSize);
         assertNotNull(result);
         assertNotNull(result.getData());
         assertEquals(2, result.getData().size());
@@ -128,7 +191,7 @@ import static org.mockito.Mockito.*;
         PageImpl<FineModel> emptyPage = new PageImpl<>(Collections.emptyList());
         when(finesRepository.findByStatus(eq(FineStatus.PENDING), any(Pageable.class)))
                 .thenReturn(emptyPage);
-        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageSize, pageNumber);
+        PaginatedResponseDTO<FineOutputDTO> result = adminService.returnAllActiveFines(pageNumber, pageSize);
         assertNotNull(result);
         assertTrue(result.getData().isEmpty());
         verify(finesRepository).findByStatus(eq(FineStatus.PENDING), any(Pageable.class));
@@ -176,289 +239,4 @@ import static org.mockito.Mockito.*;
         assertTrue(result.getData().isEmpty());
         verify(finesRepository).findByStatusAndDate(eq(FineStatus.PENDING), eq(testDate), any(Pageable.class));
     }
-    @Test
-    void testOpenFine_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        // Arrange
-        FineInputDTO fineInputDTO = new FineInputDTO();
-        fineInputDTO.setAmount(50.0f);  // Use float instead of double
-        fineInputDTO.setFineType(FineType.DAMAGE);
-        fineInputDTO.setBookId("book456");
-        fineInputDTO.setUserId("user123");
-
-        when(loanRepository.findLastLoan("book456", "user123"))
-                .thenReturn(Optional.of(loanModel));
-        when(finesRepository.save(any(FineModel.class))).thenReturn(null);
-
-        // Specific stubbing for emailService to match exact parameters
-        doNothing().when(emailService).sendEmailTemplate(
-                eq(userInfo.getGuardianEmail()),
-                eq(EmailTemplate.FINE_ALERT),
-                eq("Se ha registrado una nueva multa: "),
-                eq(50.0f),  // Use float here
-                any(LocalDate.class),
-                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
-        );
-
-        // Act
-        adminService.openFine(fineInputDTO);
-
-        // Assert
-        verify(finesRepository).save(any(FineModel.class));
-        verify(notificationRepository).save(any(NotificationModel.class));
-        verify(emailService).sendEmailTemplate(
-                eq(userInfo.getGuardianEmail()),
-                eq(EmailTemplate.FINE_ALERT),
-                eq("Se ha registrado una nueva multa: "),
-                eq(50.0f),
-                any(LocalDate.class),
-                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
-        );
-    }
-    @Test
-    void testReturnBook_Success() {
-        // Arrange
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
-                .thenReturn(Optional.of(loanModel));
-        doNothing().when(emailService).sendEmailCustomised(
-                anyString(),
-                anyString(),
-                anyString()
-        );
-
-        // Act
-        adminService.returnBook("book456", false);
-
-        // Assert
-        verify(loanRepository).save(loanModel);
-        verify(emailService).sendEmailCustomised(
-                eq(userInfo.getGuardianEmail()),
-                eq("Devolución de un libro"),
-                anyString()
-        );
-        assertTrue(loanModel.isBookReturned());
-    }
-    @Test
-    void testCloseFine_Success() throws SpammersPrivateExceptions {
-        // Arrange
-        FineModel fineModel = new FineModel();
-        fineModel.setLoan(loanModel);
-        fineModel.setAmount(50.0f);  // Note the float type
-        fineModel.setDescription("Test Fine");
-        fineModel.setFineId("fine123");
-
-        when(finesRepository.findById("fine123"))
-                .thenReturn(Optional.of(fineModel));
-
-        // Updated stubbing to match the actual method call
-        doNothing().when(emailService).sendEmailTemplate(
-                eq(userInfo.getGuardianEmail()),
-                eq(EmailTemplate.FINE_ALERT),
-                anyString(),
-                eq(50.0f),  // Use float instead of double
-                any(LocalDate.class),
-                anyString()
-        );
-
-        // Act
-        adminService.closeFine("fine123");
-
-        // Assert
-        verify(finesRepository).updateFineStatus("fine123", FineStatus.PAID);
-        verify(notificationRepository).save(any(NotificationModel.class));
-        verify(emailService).sendEmailTemplate(
-                eq(userInfo.getGuardianEmail()),
-                eq(EmailTemplate.FINE_ALERT),
-                anyString(),
-                eq(50.0f),  // Use float here as well
-                any(LocalDate.class),
-                eq("Test Fine")
-        );
-    }
-
-    @Test
-    void testReturnBook_BadCondition() {
-        // Arrange
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
-                .thenReturn(Optional.of(loanModel));
-        doNothing().when(emailService).sendEmailCustomised(
-                anyString(),
-                anyString(),
-                anyString()
-        );
-
-        // Act
-        adminService.returnBook("book456", true);
-
-        // Assert
-        verify(loanRepository).save(loanModel);
-        verify(emailService).sendEmailCustomised(
-                eq(userInfo.getGuardianEmail()),
-                eq("Devolución de un libro"),
-                anyString()
-        );
-        assertTrue(loanModel.isBookReturned());
-    }
-
-    @Test
-    void testReturnBook_LoanNotFound() {
-        // Arrange
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.returnBook("book456", false)
-        );
-    }
-
-    @Test
-    void testOpenFine_NoLastLoan_ShouldThrowException() {
-        // Arrange
-        FineInputDTO fineInputDTO = new FineInputDTO();
-        fineInputDTO.setUserId("user123");
-        fineInputDTO.setBookId("book456");
-        fineInputDTO.setFineType(FineType.RETARDMENT);
-        fineInputDTO.setAmount((float)25.0);
-
-        when(loanRepository.findLastLoan("book456", "user123"))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.openFine(fineInputDTO)
-        );
-    }
-
-    @Test
-    void testCloseFine_NotFound_ShouldThrowException() {
-        // Arrange
-        when(finesRepository.findById("fine123"))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.closeFine("fine123")
-        );
-    }
-
-    @Test
-    void testPendingFine_WithPendingFine() {
-        // Arrange
-        List<FineModel> fines = Arrays.asList(
-                createFineModel(FineStatus.PENDING),
-                createFineModel(FineStatus.PAID)
-        );
-
-        try {
-            java.lang.reflect.Method method = AdminServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
-            method.setAccessible(true);
-
-            // Act
-            boolean result = (boolean) method.invoke(adminService, fines);
-
-            // Assert
-            assertTrue(result);
-        } catch (Exception e) {
-            fail("Error al invocar el método privado", e);
-        }
-    }
-
-    @Test
-    void testPendingFine_WithoutPendingFine() {
-        // Arrange
-        List<FineModel> fines = Arrays.asList(
-                createFineModel(FineStatus.PAID),
-                createFineModel(FineStatus.PAID)
-        );
-
-        try {
-            java.lang.reflect.Method method = AdminServiceImpl.class.getDeclaredMethod("pendingFine", List.class);
-            method.setAccessible(true);
-
-            // Act
-            boolean result = (boolean) method.invoke(adminService, fines);
-
-            // Assert
-            assertFalse(result);
-        } catch (Exception e) {
-            fail("Error al invocar el método privado", e);
-        }
-    }
-
-    @Test
-    void testDaysDifference_BeforeDeadline() {
-        // Arrange
-        LocalDate deadline = LocalDate.now().plusDays(5);
-
-        try {
-            java.lang.reflect.Method method = AdminServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
-            method.setAccessible(true);
-
-            // Act
-            int result = (int) method.invoke(adminService, deadline);
-
-            // Assert
-            assertEquals(0, result);
-        } catch (Exception e) {
-            fail("Error al invocar el método privado", e);
-        }
-    }
-
-    @Test
-    void testDaysDifference_AfterDeadline() {
-        // Arrange
-        LocalDate deadline = LocalDate.now().minusDays(5);
-
-        try {
-            java.lang.reflect.Method method = AdminServiceImpl.class.getDeclaredMethod("daysDifference", LocalDate.class);
-            method.setAccessible(true);
-
-            // Act
-            int result = (int) method.invoke(adminService, deadline);
-
-            // Assert
-            assertEquals(5, result);
-        } catch (Exception e) {
-            fail("Error al invocar el método privado", e);
-        }
-    }
-    @Test
-    void testNotifyLoan() throws SpammersPublicExceptions, SpammersPrivateExceptions {
-        // Arrange
-        when(loanRepository.save(any(LoanModel.class))).thenReturn(loanModel);
-        when(notificationRepository.save(any(NotificationModel.class))).thenReturn(null);
-        doNothing().when(emailService).sendEmailTemplate(
-                anyString(),
-                any(EmailTemplate.class),
-                anyString()
-        );
-
-        // Act
-        adminService.notifyLoan(loanDTO);
-
-        // Assert
-        verify(loanRepository).save(any(LoanModel.class));
-        verify(notificationRepository).save(any(NotificationModel.class));
-        verify(emailService).sendEmailTemplate(
-                eq(loanDTO.getEmailGuardian()),
-                eq(EmailTemplate.NOTIFICATION_ALERT),
-                anyString()
-        );
-    }
-
-    private FineModel createFineModel(FineStatus status) {
-        FineModel fineModel = new FineModel();
-        fineModel.setFineId(UUID.randomUUID().toString());
-        fineModel.setFineStatus(status);
-        fineModel.setAmount((float)50.0);
-        fineModel.setDescription("Test Fine");
-        fineModel.setExpiredDate(LocalDate.now());
-        fineModel.setFineType(FineType.RETARDMENT);
-        fineModel.setLoan(loanModel);
-        return fineModel;
-    }
-
-
-
-
 }

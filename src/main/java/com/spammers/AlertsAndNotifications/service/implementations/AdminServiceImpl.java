@@ -171,7 +171,7 @@ public class AdminServiceImpl implements AdminService {
         );
     }
 
-    private boolean pendingFine(List<FineModel> fines) {
+    public boolean pendingFine(List<FineModel> fines) {
         boolean pending = false;
         for (FineModel fine : fines) {
             if(fine.getFineStatus().equals(FineStatus.PENDING)){
