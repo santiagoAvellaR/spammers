@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/notifications/user")
+@RequestMapping("/usersNotifications/")
 public class SpammersController {
-
 
     private final NotificationService notificationService;
 
@@ -24,7 +23,7 @@ public class SpammersController {
      * @param size   The number of items per page.
      * @return A map containing the notifications associated with the user.
      */
-    @GetMapping("/users/{userId}/notifications")
+    @GetMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public PaginatedResponseDTO<NotificationDTO> getNotifications(
             @PathVariable("userId") String userId,
@@ -47,4 +46,31 @@ public class SpammersController {
         return notificationService.getFinesByUserId(userId, page, size);
     }
 
+    /**
+     * Marks a notification as seen.
+     * <p>
+     * This method calls the service layer to mark the notification with the given ID as seen.
+     * <p>
+     * @param notificationId the ID of the notification to be marked as seen.
+     * @return the number of rows that has been actualized.
+     */
+    @PutMapping("/mark-seen/{notificationId}")
+    public int markNotificationAsSeen(@PathVariable String notificationId) {
+        return notificationService.markNotificationAsSeen(notificationId);
+    }
+
+    /**
+     * Retrieves the number of notifications that have not been seen by a specific user.
+     * <p>
+     * This method retrieves the number of notifications that have not been seen for a user
+     * by interacting with the service layer.
+     * <p>
+     * @param userId the ID of the user whose unseen notifications are to be counted.
+     * @return a ResponseEntity containing a ResponseMessage object with the result and the count of unseen notifications
+     * and the count of active fines.
+     */
+    @GetMapping("/count/{userId}")
+    public UserNotificationsInformationDTO getNumberNotificationsNotSeenByUser(@PathVariable String userId) {
+        return notificationService.getNumberNotificationsNotSeenByUser(userId);
+    }
 }

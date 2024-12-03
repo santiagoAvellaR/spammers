@@ -34,6 +34,7 @@ public class AdminController {
         return adminService.returnAllActiveFines(page, size);
     }
 
+
     /**
      * This method sends a notification of a loan created.
      * @param loanDTO the information required to send the notification:
@@ -93,4 +94,6 @@ public class AdminController {
         adminService.closeFine(fineId);
         return "Fine Closed";
     }
+
+
 }

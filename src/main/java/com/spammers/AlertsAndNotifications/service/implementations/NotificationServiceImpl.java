@@ -42,16 +42,12 @@ public class NotificationServiceImpl implements NotificationService {
 
 
 
-
-
-
     @Override
     public PaginatedResponseDTO<FineOutputDTO> getFinesByUserId(String userId, int pageNumber, int pageSize){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<FineModel> page = finesRepository.findByUserId(userId, pageable);
         return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
-
 
     @Override
     public PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int pageNumber, int pageSize) {
@@ -60,5 +56,36 @@ public class NotificationServiceImpl implements NotificationService {
         return NotificationDTO.encapsulateFineModelOnDTO(page);
     }
 
+
+    /**
+     * Retrieves the number of notifications that have not been seen by a specific user.
+     * <p>
+     * This method interacts with the repository layer to count notifications that
+     * are associated with the given user ID and have not been marked as seen.
+     * <p>
+     * @param userId the ID of the user whose unseen notifications are to be counted.
+     * @return the count of unseen notifications for the specified user.
+     */
+    @Override
+    public UserNotificationsInformationDTO getNumberNotificationsNotSeenByUser(String userId) {
+        return new UserNotificationsInformationDTO(
+                notificationRepository.getNumberNotificationsNotSeenByUser(userId, false),
+                finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING)
+        );
+    }
+
+    /**
+     * Marks a specific notification as seen by updating its `hasBeenSeen` status to true.
+     * <p>
+     * This method interacts with the repository layer to update the state of a notification
+     * identified by its unique ID. The method returns the number of records updated in the database.
+     * <p>
+     * @param notificationId the unique identifier of the notification to be marked as seen.
+     * @return the number of notifications updated (1 if successful, 0 if no matching notification was found).
+     */
+    @Override
+    public int markNotificationAsSeen(String notificationId) {
+        return notificationRepository.markNotificationAsSeen(notificationId);
+    }
 
 }

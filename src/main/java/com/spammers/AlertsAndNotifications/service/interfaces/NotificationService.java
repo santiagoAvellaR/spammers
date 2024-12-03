@@ -7,5 +7,7 @@ public interface NotificationService {
     PaginatedResponseDTO<FineOutputDTO> getFinesByUserId(String userId, int page, int size);
     PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int page, int size);
 
+    UserNotificationsInformationDTO getNumberNotificationsNotSeenByUser(String userId);
+    int markNotificationAsSeen(String notificationId);
 
 }
