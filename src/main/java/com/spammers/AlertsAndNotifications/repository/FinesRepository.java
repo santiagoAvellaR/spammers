@@ -86,4 +86,7 @@ public interface FinesRepository extends JpaRepository<FineModel, String> {
 
     @Query("SELECT f FROM FineModel f WHERE f.loan.userId = :givenUserId")
     Page<FineModel> findByUserId(@Param("givenUserId") String givenUserId, Pageable pageable);
+
+    @Query("SELECT COUNT(f) FROM FineModel f WHERE f.loan.userId = :userId AND f.fineStatus = :givenFineStatus")
+    Long getNumberActiveFinesByUser(@Param("userId") String userId, @Param("givenFineStatus") FineStatus givenFineStatus);
 }

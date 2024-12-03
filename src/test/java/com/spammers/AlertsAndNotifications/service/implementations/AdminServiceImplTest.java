@@ -1,8 +1,8 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
+import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
 import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;

@@ -6,11 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.spammers.AlertsAndNotifications.model.dto.FineInputDTO;
-import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
-import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;

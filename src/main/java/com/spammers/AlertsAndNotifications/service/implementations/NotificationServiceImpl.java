@@ -62,6 +62,25 @@ public class NotificationServiceImpl implements NotificationService {
         emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
+    private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
+
+        String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
+        String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
+
+        return String.format(
+                EmailTemplate.BOOK_RETURN.getTemplate(),
+                guardianName,
+                studentName,
+                loanDate,
+                delayMessage,
+                conditionMessage
+        );
+    }
+
+    private int daysDifference(LocalDate deadline){
+        return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
+    }
+
     public void returnBook(String bookId, boolean returnedInBadCondition) {
         Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
@@ -85,11 +104,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * Opens a new fine for a specific loan and notifies the associated user.
-     *
+     * <p>
      * This method creates a new fine for the specified loan, sends a notification
      * to the user, and triggers an email alert with the fine details. The fine is
      * saved with a status of {@link FineStatus#PENDING}.
-     *
+     * <p>
      * @param fineInputDTO A DTO of the fine.
      */
     @Override
@@ -113,11 +132,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * Closes an existing fine by updating its status to {@link FineStatus#PAID}.
-     *
+     * <p>
      * This method finds the fine by its unique identifier and updates its status
      * to indicate that it has been paid. If no fine is found with the given ID,
      * the method does nothing.
-     *
+     * <p>
      * @param fineId The unique identifier of the fine to be closed.
      *               The parameter should be of type {@link String}.
      */
@@ -137,30 +156,12 @@ public class NotificationServiceImpl implements NotificationService {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND);
         }
     }
+
     @Override
     public PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<NotificationModel> page = notificationRepository.findByUserId(userId, pageable);
         return NotificationDTO.encapsulateFineModelOnDTO(page);
-    }
-
-    private int daysDifference(LocalDate deadline){
-        return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
-    }
-
-    private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
-
-        String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
-        String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
-
-        return String.format(
-                EmailTemplate.BOOK_RETURN.getTemplate(),
-                guardianName,
-                studentName,
-                loanDate,
-                delayMessage,
-                conditionMessage
-        );
     }
 
     private boolean pendingFine(List<FineModel> fines) {
@@ -172,5 +173,36 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return pending;
+    }
+
+    /**
+     * Retrieves the number of notifications that have not been seen by a specific user.
+     * <p>
+     * This method interacts with the repository layer to count notifications that
+     * are associated with the given user ID and have not been marked as seen.
+     * <p>
+     * @param userId the ID of the user whose unseen notifications are to be counted.
+     * @return the count of unseen notifications for the specified user.
+     */
+    @Override
+    public UserNotificationsInformationDTO getNumberNotificationsNotSeenByUser(String userId) {
+        return new UserNotificationsInformationDTO(
+                notificationRepository.getNumberNotificationsNotSeenByUser(userId, false),
+                finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING)
+        );
+    }
+
+    /**
+     * Marks a specific notification as seen by updating its `hasBeenSeen` status to true.
+     * <p>
+     * This method interacts with the repository layer to update the state of a notification
+     * identified by its unique ID. The method returns the number of records updated in the database.
+     * <p>
+     * @param notificationId the unique identifier of the notification to be marked as seen.
+     * @return the number of notifications updated (1 if successful, 0 if no matching notification was found).
+     */
+    @Override
+    public int markNotificationAsSeen(String notificationId) {
+        return notificationRepository.markNotificationAsSeen(notificationId);
     }
 }
