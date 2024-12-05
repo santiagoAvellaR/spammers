@@ -352,21 +352,62 @@ class AdminServiceImplTest {
         fineInputDTO.setFineType(FineType.DAMAGE);
         fineInputDTO.setAmount(10.50f);
 
-        // Simulamos que no se encuentra ningún préstamo
         when(loanRepository.findLastLoan("book456", "user123"))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
-        // Verificamos que se lanza la excepción SpammersPrivateExceptions
         assertThrows(SpammersPrivateExceptions.class,
                 () -> adminService.openFine(fineInputDTO),
                 "Debe lanzar una excepción cuando no se encuentra un préstamo"
         );
 
-        // Verificamos que no se realiza ninguna otra acción
         verify(finesRepository, never()).save(any());
         verify(notificationRepository, never()).save(any());
         verify(emailService, never()).sendEmailTemplate(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void testOpenFine_WithCustomDescription() {
+        // Arrange
+        LoanModel loanModel = new LoanModel();
+        loanModel.setUserId("user123");
+        loanModel.setBookId("book456");
+        loanModel.setBookName("Test Book");
+
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setUserId("user123");
+        fineInputDTO.setFineType(FineType.DAMAGE);
+        fineInputDTO.setAmount(10f);
+        fineInputDTO.setDescription("Libro dañado en la página 5");
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setGuardianEmail("guardian@email.com");
+
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.of(loanModel));
+
+        // Act
+        adminService.openFine(fineInputDTO);
+
+        // Assert
+        verify(loanRepository).findLastLoan("book456", "user123");
+
+        verify(finesRepository).save(argThat(fine ->
+                fine.getDescription().equals("Libro dañado en la página 5") &&
+                        fine.getFineStatus() == FineStatus.PENDING &&
+                        fine.getFineType() == FineType.DAMAGE
+        ));
+
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq("guardian@email.com"),
+                eq(EmailTemplate.FINE_ALERT),
+                anyString(),
+                eq(10f),
+                any(LocalDate.class),
+                eq("Libro dañado en la página 5")
+        );
     }
 
 }
