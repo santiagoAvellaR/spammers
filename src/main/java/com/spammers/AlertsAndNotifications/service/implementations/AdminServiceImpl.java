@@ -1,7 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.*;
@@ -27,8 +26,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class AdminServiceImpl implements AdminService {
-
     private final FinesRepository finesRepository;
+    private final FineDailyIncrease fineDailyIncrease;
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
@@ -60,13 +59,16 @@ public class AdminServiceImpl implements AdminService {
      * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineInputDTO fineInputDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPrivateExceptions {
         Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
             String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
-            String description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
+            String description;
+            if(fineInputDTO.getDescription()==null || fineInputDTO.getDescription().isBlank()){
+                description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
+            } else description = fineInputDTO.getDescription();
             FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
             finesRepository.save(fineModel);
             NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel, false, fineModel.getLoan().getBookName());
@@ -121,20 +123,20 @@ public class AdminServiceImpl implements AdminService {
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
      * @param loanDTO The Loan DTO to create and send the notification.
-     * @throws SpammersPublicExceptions If there is any problem with your
      * @throws SpammersPrivateExceptions
      */
     @Override
-    public void notifyLoan(LoanDTO loanDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    public void notifyLoan(LoanDTO loanDTO) throws SpammersPrivateExceptions {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
-
+        UserInfo userInfo = apiClient.getUserInfoById(loanDTO.getUserId());
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
         loanRepository.save(loanM);
         NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM, false, loanM.getBookName());
 
         notificationRepository.save(notification);
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado con fecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado a: "+userInfo.getName()+"\nArtículo: " +loanDTO.getBookName()+
+                "\nFecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
     /**
@@ -152,6 +154,16 @@ public class AdminServiceImpl implements AdminService {
         Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
         return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
+
+    /**
+     * This method allows the Admin to change the fines day rate.
+     * @param rate the rate of the fines.
+     */
+    @Override
+    public void setFinesRateDay(float rate) {
+        fineDailyIncrease.setFineRate(rate);
+    }
+
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }
@@ -171,15 +183,5 @@ public class AdminServiceImpl implements AdminService {
         );
     }
 
-    public boolean pendingFine(List<FineModel> fines) {
-        boolean pending = false;
-        for (FineModel fine : fines) {
-            if(fine.getFineStatus().equals(FineStatus.PENDING)){
-                pending = true;
-                break;
-            }
-        }
-        return pending;
-    }
 
 }

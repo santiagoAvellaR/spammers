@@ -39,6 +39,7 @@
 			**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.java,
+			**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.java,
 			**/com/spammers/AlertsAndNotifications/config/**
 		</sonar.coverage.exclusions>
@@ -149,6 +150,7 @@
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.class</exclude>
 							</excludes>
 						</configuration>

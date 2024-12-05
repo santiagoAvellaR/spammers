@@ -216,5 +216,14 @@ class AdminControllerTest {
         verify(adminService).closeFine(eq(fineId));
     }
 
+    @Test
+    void testSetFinesRate_Success() throws Exception {
+        float newRate = 500f;
+        mockMvc.perform(put("/notifications/admin/fines/{newRate}/rate", newRate))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Fine updated Correctly"));
+        verify(adminService).setFinesRateDay(newRate);
+    }
+
 
 }

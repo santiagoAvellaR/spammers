@@ -14,4 +14,5 @@ public interface AdminService {
     void closeFine(String loanId);
     PaginatedResponseDTO<FineOutputDTO> returnAllActiveFines(int pageSize, int pageNumber);
     PaginatedResponseDTO<FineOutputDTO> returnAllActiveFinesBetweenDate(LocalDate date, int pageSize, int pageNumber);
+    void setFinesRateDay(float rate);
 }
