@@ -19,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
@@ -49,8 +51,10 @@ class AdminServiceImplTest {
     private NotificationRepository notificationRepository;
 
     @Mock
-    private ApiClientLocal apiClient;
+    private ApiClient apiClient;
 
+    @Mock
+    FineDailyIncrease fineDailyIncrease;
 
     private LoanDTO loanDTO;
     private UserInfo userInfo;
@@ -238,4 +242,131 @@ class AdminServiceImplTest {
         assertTrue(result.getData().isEmpty());
         verify(finesRepository).findByStatusAndDate(eq(FineStatus.PENDING), eq(testDate), any(Pageable.class));
     }
+
+    @Test
+    void testReturnBook_OnTimeAndGoodCondition() {
+        // Arrange
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.of(loanModel));
+
+        // Act
+        adminService.returnBook("book456", false);
+
+        // Assert
+        verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
+        verify(emailService).sendEmailCustomised(
+                eq("guardian@email.com"),
+                eq("Devolución de un libro"),
+                anyString()
+        );
+        verify(loanRepository).save(loanModel);
+        assertTrue(loanModel.isBookReturned());
+    }
+
+    @Test
+    void testReturnBook_LateAndBadCondition() {
+        // Arrange
+        loanModel.setLoanDate(LocalDate.now().minusDays(20)); // Late return
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.of(loanModel));
+
+        // Act
+        adminService.returnBook("book456", true);
+
+        // Assert
+        verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
+        verify(emailService).sendEmailCustomised(
+                eq("guardian@email.com"),
+                eq("Devolución de un libro"),
+                argThat(body -> body.contains("tuvo un retraso de") && body.contains("devolvió en malas condiciones"))
+        );
+        verify(loanRepository).save(loanModel);
+        assertTrue(loanModel.isBookReturned());
+    }
+
+    @Test
+    void testReturnBook_LoanNotFound() {
+        // Arrange
+        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> adminService.returnBook("book456", false));
+    }
+
+    @Test
+    void testCloseFine_Success() {
+        // Arrange
+        FineModel fineModel = new FineModel();
+        fineModel.setLoan(loanModel);
+        fineModel.setAmount(10.50f);
+        fineModel.setDescription("Late return fine");
+
+        when(finesRepository.findById("fine123")).thenReturn(Optional.of(fineModel));
+
+        // Act
+        adminService.closeFine("fine123");
+
+        // Assert
+        verify(finesRepository).updateFineStatus("fine123", FineStatus.PAID);
+        verify(notificationRepository).save(any(NotificationModel.class));
+        verify(emailService).sendEmailTemplate(
+                eq("guardian@email.com"),
+                eq(EmailTemplate.FINE_ALERT),
+                anyString(),
+                eq(10.50f),
+                any(LocalDate.class),
+                eq("Late return fine")
+        );
+    }
+
+    @Test
+    void testCloseFine_NotFound() {
+        // Arrange
+        when(finesRepository.findById("fine123")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> adminService.closeFine("fine123"));
+    }
+
+    @Test
+    void testSetFinesRateDay() {
+        // Arrange
+        float rate = 0.5f;
+
+        // Act
+        adminService.setFinesRateDay(rate);
+
+        // Assert
+        verify(fineDailyIncrease).setFineRate(rate);
+    }
+
+    @Test
+    void testOpenFine_LoanNotFound() {
+        // Arrange
+        FineInputDTO fineInputDTO = new FineInputDTO();
+        fineInputDTO.setBookId("book456");
+        fineInputDTO.setUserId("user123");
+        fineInputDTO.setFineType(FineType.DAMAGE);
+        fineInputDTO.setAmount(10.50f);
+
+        // Simulamos que no se encuentra ningún préstamo
+        when(loanRepository.findLastLoan("book456", "user123"))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        // Verificamos que se lanza la excepción SpammersPrivateExceptions
+        assertThrows(SpammersPrivateExceptions.class,
+                () -> adminService.openFine(fineInputDTO),
+                "Debe lanzar una excepción cuando no se encuentra un préstamo"
+        );
+
+        // Verificamos que no se realiza ninguna otra acción
+        verify(finesRepository, never()).save(any());
+        verify(notificationRepository, never()).save(any());
+        verify(emailService, never()).sendEmailTemplate(any(), any(), any(), any(), any(), any());
+    }
+
 }
