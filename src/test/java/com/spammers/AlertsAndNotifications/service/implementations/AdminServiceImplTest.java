@@ -1,7 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.dto.*;
@@ -33,7 +32,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AdminServiceImplTest {
+class AdminServiceImplTest {
 
     @Mock
     private FinesRepository finesRepository;
@@ -79,7 +78,7 @@ public class AdminServiceImplTest {
     }
 
     @Test
-    void testNotifyLoan() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    void testNotifyLoan() throws SpammersPrivateExceptions {
         // Arrange
         when(loanRepository.save(any(LoanModel.class))).thenReturn(loanModel);
         when(notificationRepository.save(any(NotificationModel.class))).thenReturn(null);
@@ -102,7 +101,7 @@ public class AdminServiceImplTest {
         );
     }
     @Test
-    void testOpenFine_Success() throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    void testOpenFine_Success() throws SpammersPrivateExceptions {
         // Arrange
         FineInputDTO fineInputDTO = new FineInputDTO();
         fineInputDTO.setAmount(50.0f);  // Use float instead of double

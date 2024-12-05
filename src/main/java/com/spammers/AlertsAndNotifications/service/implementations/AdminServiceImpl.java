@@ -1,7 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.*;
@@ -27,7 +26,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class AdminServiceImpl implements AdminService {
-
     private final FinesRepository finesRepository;
     private final LoanRepository loanRepository;
     private final EmailService emailService;
@@ -60,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
      * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineInputDTO fineInputDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPrivateExceptions {
         Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
@@ -121,11 +119,10 @@ public class AdminServiceImpl implements AdminService {
     /**
      * This method creates a Notification of the Loan. Saves it into Loans Table where we have just active loans.
      * @param loanDTO The Loan DTO to create and send the notification.
-     * @throws SpammersPublicExceptions If there is any problem with your
      * @throws SpammersPrivateExceptions
      */
     @Override
-    public void notifyLoan(LoanDTO loanDTO) throws SpammersPublicExceptions, SpammersPrivateExceptions {
+    public void notifyLoan(LoanDTO loanDTO) throws SpammersPrivateExceptions {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
 
@@ -152,6 +149,16 @@ public class AdminServiceImpl implements AdminService {
         Page<FineModel> page = finesRepository.findByStatusAndDate(FineStatus.PENDING, date, pageable);
         return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
+
+    /**
+     * This method allows the Admin to change the fines day rate.
+     * @param rate the rate of the fines.
+     */
+    @Override
+    public void setFinesRateDay(float rate) {
+        //process to update the fines rate
+    }
+
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }

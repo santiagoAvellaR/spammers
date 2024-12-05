@@ -1,9 +1,9 @@
 package com.spammers.AlertsAndNotifications.repository;
 
 import com.spammers.AlertsAndNotifications.model.FineModel;
-import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
+@Transactional
 @Repository
 /**
  * Repository interface for handling data access operations related to fines.

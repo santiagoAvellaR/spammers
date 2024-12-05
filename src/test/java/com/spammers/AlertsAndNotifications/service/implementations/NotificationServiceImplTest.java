@@ -1,6 +1,5 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.*;
@@ -118,6 +117,29 @@ public class NotificationServiceImplTest {
         assertNotNull(result);
         assertTrue(result.getData().isEmpty());
         verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void testMarkNotificationAsSeen_Success(){
+        String userId = "user123";
+        when(notificationRepository.markNotificationAsSeen(userId)).thenReturn(1);
+        notificationService.markNotificationAsSeen(userId);
+        verify(notificationRepository).markNotificationAsSeen(userId);
+    }
+
+    @Test
+    void testMarkNotificationAsSeen_Failure(){
+        String userId = "user123";
+        when(notificationRepository.markNotificationAsSeen(userId)).thenReturn(0);
+        notificationService.markNotificationAsSeen(userId);
+        verify(notificationRepository).markNotificationAsSeen(userId);
+    }
+
+    @Test
+    void getFinesByUserId_Success(){
+        String userId = "user123";
+        int pageNumber = 0, size = 15;
+        //notificationService.getFinesByUserId(userId,pageNumber,size);
     }
 
 
