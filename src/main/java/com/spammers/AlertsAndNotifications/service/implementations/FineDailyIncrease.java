@@ -24,7 +24,7 @@ public class FineDailyIncrease {
     private float fineRate = 800f; // 800 COP per day
 
     public void setFineRate(float fineRate) {
-        if(invalidRate(fineRate)) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.INVALID_RATE);
+        if(invalidRate(fineRate)) throw new SpammersPrivateExceptions(SpammersPrivateExceptions.INVALID_RATE, 400);
         this.fineRate = fineRate;
     }
 
