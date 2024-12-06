@@ -1,5 +1,6 @@
 package com.spammers.AlertsAndNotifications;
 
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.service.implementations.ApiClient;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,11 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String token = getTokenFromRequest(request);
-        System.out.println("token = " + token);
         if(token != null){
             boolean isValid = apiClient.validateToken(token);
             if(isValid){
                 String role = decodePayload(token);
+                System.out.println("role = " + role);
                 UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken("12335"
                         ,
                         null,
@@ -60,11 +61,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (payload.contains("\"role\":")) {
             int startIndex = payload.indexOf("\"role\":") + 7;
             int endIndex = payload.indexOf("\"", startIndex + 1);
-            String role = payload.substring(startIndex + 1, endIndex);
-            System.out.println("Role: " + role);
-            return role;
+            return payload.substring(startIndex + 1, endIndex).toUpperCase();
         } else {
-           throw new RuntimeException("no existe ese rol");
+           throw new SpammersPrivateExceptions(SpammersPrivateExceptions.ROLE_NOT_FOUND, 401);
         }
 
     }
