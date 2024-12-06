@@ -1,5 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,23 +28,20 @@ public class ApiClient {
                 .retrieve()
                 .toEntity(UserInfo.class);
         if(userInfo.getStatusCode().is4xxClientError()){
-            throw new RuntimeException("al parecer no existe el id");
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.USER_NOT_FOUND,404);
         } else if (userInfo.getStatusCode().is5xxServerError()) {
-            throw new RuntimeException("5000");
+            throw new SpammersPrivateExceptions("User Service error", 500);
         }else{
-            //return userInfo.getBody();
+            return userInfo.getBody();
         }
-        return null;
     }
     public boolean validateToken(String token){
-        System.out.println("token = " + token);
         ResponseEntity<?> validateClient = restClient.get()
                 .uri(APIAUTHURL + "/auth/session")
                 .header("AUTHORIZATION","Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(Object.class);
-        System.out.println("validateClient = " + validateClient);
         if(validateClient.getStatusCode().is2xxSuccessful()){
             return true;
         }
