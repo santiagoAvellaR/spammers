@@ -43,7 +43,7 @@ public class AdminServiceImpl implements AdminService {
         UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
+                userInfo.getGuardianName(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
         loanModel.get().setBookReturned(true);
         loanRepository.save(loanModel.get());
