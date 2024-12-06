@@ -9,5 +9,4 @@ public interface NotificationService {
 
     UserNotificationsInformationDTO getNumberNotificationsNotSeenByUser(String userId);
     int markNotificationAsSeen(String notificationId);
-
 }

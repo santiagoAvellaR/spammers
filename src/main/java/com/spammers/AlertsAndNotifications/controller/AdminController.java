@@ -34,6 +34,18 @@ public class AdminController {
         return adminService.returnAllActiveFines(page, size);
     }
 
+    /**
+     * This method allows the user to change the fines day rate.
+     * @param newRate the new fines day rate.
+     * @return Success Message confirmation
+     */
+    @PutMapping("/fines/{newRate}/rate")
+    @ResponseStatus(HttpStatus.OK)
+    public String setFinesDayRate(@PathVariable float newRate){
+        adminService.setFinesRateDay(newRate);
+        return "Fine updated Correctly";
+    }
+
 
     /**
      * This method sends a notification of a loan created.
