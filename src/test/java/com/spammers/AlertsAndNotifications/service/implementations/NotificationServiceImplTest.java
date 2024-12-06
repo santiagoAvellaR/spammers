@@ -1,6 +1,5 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
-import com.spammers.AlertsAndNotifications.exceptions.SpammersPublicExceptions;
 import com.spammers.AlertsAndNotifications.model.*;
 import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.*;
@@ -25,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class NotificationServiceImplTest {
+class NotificationServiceImplTest {
 
     @Mock
     private FinesRepository finesRepository;
@@ -40,7 +39,7 @@ public class NotificationServiceImplTest {
     private NotificationRepository notificationRepository;
 
     @Mock
-    private ApiClientLocal apiClient;
+    private ApiClient apiClient;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -120,6 +119,23 @@ public class NotificationServiceImplTest {
         verify(notificationRepository).findByUserId(eq(userId), any(Pageable.class));
     }
 
+    @Test
+    void testMarkNotificationAsSeen_Success(){
+        String userId = "user123";
+        when(notificationRepository.markNotificationAsSeen(userId)).thenReturn(1);
+        notificationService.markNotificationAsSeen(userId);
+        verify(notificationRepository).markNotificationAsSeen(userId);
+    }
+
+    @Test
+    void testMarkNotificationAsSeen_Failure(){
+        String userId = "user123";
+        when(notificationRepository.markNotificationAsSeen(userId)).thenReturn(0);
+        notificationService.markNotificationAsSeen(userId);
+        verify(notificationRepository).markNotificationAsSeen(userId);
+    }
+
+
 
 
     @Test
@@ -154,7 +170,109 @@ public class NotificationServiceImplTest {
 
 
 
+    @Test
+    void testGetNumberNotificationsNotSeenByUser_WithNotifications() {
+        // Arrange
+        String userId = "user123";
+        Long expectedNotifications = 3L;
+        Long expectedActiveFines = 2L;
 
+        when(notificationRepository.getNumberNotificationsNotSeenByUser(userId, false))
+                .thenReturn(expectedNotifications);
+
+        when(finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING))
+                .thenReturn(expectedActiveFines);
+
+        // Act
+        UserNotificationsInformationDTO result =
+                notificationService.getNumberNotificationsNotSeenByUser(userId);
+
+        // Assert
+        assertEquals(expectedNotifications, result.getNumberNotificationsNotSeen());
+        assertEquals(expectedActiveFines, result.getNumberActiveFines());
+
+        // Verify interactions
+        verify(notificationRepository).getNumberNotificationsNotSeenByUser(userId, false);
+        verify(finesRepository).getNumberActiveFinesByUser(userId, FineStatus.PENDING);
+    }
+
+    @Test
+    void testGetNumberNotificationsNotSeenByUser_NoNotifications() {
+        // Arrange
+        String userId = "user123";
+        Long expectedNotifications = 0L;
+        Long expectedActiveFines = 0L;
+
+        when(notificationRepository.getNumberNotificationsNotSeenByUser(userId, false))
+                .thenReturn(expectedNotifications);
+
+        when(finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING))
+                .thenReturn(expectedActiveFines);
+
+        // Act
+        UserNotificationsInformationDTO result =
+                notificationService.getNumberNotificationsNotSeenByUser(userId);
+
+        // Assert
+        assertEquals(expectedNotifications, result.getNumberNotificationsNotSeen());
+        assertEquals(expectedActiveFines, result.getNumberActiveFines());
+
+        // Verify interactions
+        verify(notificationRepository).getNumberNotificationsNotSeenByUser(userId, false);
+        verify(finesRepository).getNumberActiveFinesByUser(userId, FineStatus.PENDING);
+    }
+
+    @Test
+    void testGetNumberNotificationsNotSeenByUser_OnlyNotifications() {
+        // Arrange
+        String userId = "user123";
+        Long expectedNotifications = 5L;
+        Long expectedActiveFines = 0L;
+
+        when(notificationRepository.getNumberNotificationsNotSeenByUser(userId, false))
+                .thenReturn(expectedNotifications);
+
+        when(finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING))
+                .thenReturn(expectedActiveFines);
+
+        // Act
+        UserNotificationsInformationDTO result =
+                notificationService.getNumberNotificationsNotSeenByUser(userId);
+
+        // Assert
+        assertEquals(expectedNotifications, result.getNumberNotificationsNotSeen());
+        assertEquals(expectedActiveFines, result.getNumberActiveFines());
+
+        // Verify interactions
+        verify(notificationRepository).getNumberNotificationsNotSeenByUser(userId, false);
+        verify(finesRepository).getNumberActiveFinesByUser(userId, FineStatus.PENDING);
+    }
+
+    @Test
+    void testGetNumberNotificationsNotSeenByUser_OnlyActiveFines() {
+        // Arrange
+        String userId = "user123";
+        Long expectedNotifications = 0L;
+        Long expectedActiveFines = 3L;
+
+        when(notificationRepository.getNumberNotificationsNotSeenByUser(userId, false))
+                .thenReturn(expectedNotifications);
+
+        when(finesRepository.getNumberActiveFinesByUser(userId, FineStatus.PENDING))
+                .thenReturn(expectedActiveFines);
+
+        // Act
+        UserNotificationsInformationDTO result =
+                notificationService.getNumberNotificationsNotSeenByUser(userId);
+
+        // Assert
+        assertEquals(expectedNotifications, result.getNumberNotificationsNotSeen());
+        assertEquals(expectedActiveFines, result.getNumberActiveFines());
+
+        // Verify interactions
+        verify(notificationRepository).getNumberNotificationsNotSeenByUser(userId, false);
+        verify(finesRepository).getNumberActiveFinesByUser(userId, FineStatus.PENDING);
+    }
 
 
 }

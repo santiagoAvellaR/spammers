@@ -1,6 +1,5 @@
 package com.spammers.AlertsAndNotifications.config;
 
-import com.spammers.AlertsAndNotifications.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

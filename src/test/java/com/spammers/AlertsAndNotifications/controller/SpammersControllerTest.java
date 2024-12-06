@@ -6,11 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.spammers.AlertsAndNotifications.model.dto.FineInputDTO;
-import com.spammers.AlertsAndNotifications.model.dto.FineOutputDTO;
-import com.spammers.AlertsAndNotifications.model.dto.LoanDTO;
-import com.spammers.AlertsAndNotifications.model.dto.NotificationDTO;
-import com.spammers.AlertsAndNotifications.model.dto.PaginatedResponseDTO;
+import com.spammers.AlertsAndNotifications.model.dto.*;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.model.enums.FineType;
 import com.spammers.AlertsAndNotifications.model.enums.NotificationType;
@@ -110,6 +106,31 @@ class SpammersControllerTest {
 
         // Verify service method was called
         verify(notificationService).getFinesByUserId(eq(userId), eq(page), eq(size));
+    }
+
+    @Test
+    void test_notificationsNotSeen_Success() throws Exception {
+        String userId = "user123";
+        Long notificationsNotSeen = 2L, activeFines = 4L;
+
+        UserNotificationsInformationDTO userNotificationsInformationDTO = new UserNotificationsInformationDTO(notificationsNotSeen, activeFines);
+        when(notificationService.getNumberNotificationsNotSeenByUser(userId))
+                .thenReturn(userNotificationsInformationDTO);
+        mockMvc.perform(get("/usersNotifications/count/{userId}", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.numberNotificationsNotSeen").value(notificationsNotSeen))
+                .andExpect(jsonPath("$.numberActiveFines").value(activeFines));
+    }
+
+    @Test
+    void test_markNotificationAsSeen_Success() throws Exception {
+        String notificationId = "notification123";
+        int changedNotifications = 1;
+        when(notificationService.markNotificationAsSeen(notificationId))
+                .thenReturn(changedNotifications);
+        mockMvc.perform(put("/usersNotifications/mark-seen/{notificationId}", notificationId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(changedNotifications));
     }
 
 
