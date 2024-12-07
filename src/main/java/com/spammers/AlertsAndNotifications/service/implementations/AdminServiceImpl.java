@@ -166,6 +166,11 @@ public class AdminServiceImpl implements AdminService {
         fineDailyIncrease.setFineRate(rate);
     }
 
+    @Override
+    public float getFinesDayRate() {
+        return fineDailyIncrease.getFineRate();
+    }
+
     private int daysDifference(LocalDate deadline){
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }

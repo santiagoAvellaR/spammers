@@ -63,7 +63,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/usersNotifications/users/{userId}", userId)
+        mockMvc.perform(get("/notifications/users/user/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
@@ -96,7 +96,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/usersNotifications/users/{userId}/fines", userId)
+        mockMvc.perform(get("/notifications/users/fines/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
@@ -120,7 +120,7 @@ class SpammersControllerTest {
         UserNotificationsInformationDTO userNotificationsInformationDTO = new UserNotificationsInformationDTO(notificationsNotSeen, activeFines);
         when(notificationService.getNumberNotificationsNotSeenByUser(userId))
                 .thenReturn(userNotificationsInformationDTO);
-        mockMvc.perform(get("/usersNotifications/count/{userId}", userId))
+        mockMvc.perform(get("/notifications/users/count/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.numberNotificationsNotSeen").value(notificationsNotSeen))
                 .andExpect(jsonPath("$.numberActiveFines").value(activeFines));
@@ -132,7 +132,7 @@ class SpammersControllerTest {
         int changedNotifications = 1;
         when(notificationService.markNotificationAsSeen(notificationId))
                 .thenReturn(changedNotifications);
-        mockMvc.perform(put("/usersNotifications/mark-seen/{notificationId}", notificationId))
+        mockMvc.perform(put("/notifications/users/mark-seen/{notificationId}", notificationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(changedNotifications));
     }

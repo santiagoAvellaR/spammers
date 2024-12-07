@@ -344,6 +344,13 @@ class AdminServiceImplTest {
     }
 
     @Test
+    void testGetFinesRateDay(){
+        adminService.getFinesDayRate();
+        //Assert
+        verify(fineDailyIncrease).getFineRate();
+    }
+
+    @Test
     void testOpenFine_LoanNotFound() {
         // Arrange
         FineInputDTO fineInputDTO = new FineInputDTO();

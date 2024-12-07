@@ -64,7 +64,7 @@ class AdminControllerTest {
         when(adminService.returnAllActiveFinesBetweenDate(eq(testDate), eq(size), eq(page)))
                 .thenReturn(responseDTO);
 
-        mockMvc.perform(get("/notifications/admin/loans-about-expire")
+        mockMvc.perform(get("/notifications/admin/fines/pending-by-date")
                         .param("date", testDate.toString())
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
@@ -89,7 +89,7 @@ class AdminControllerTest {
         when(adminService.returnAllActiveFinesBetweenDate(eq(testDate), eq(size), eq(page)))
                 .thenReturn(responseDTO);
 
-        mockMvc.perform(get("/notifications/admin/loans-about-expire")
+        mockMvc.perform(get("/notifications/admin/fines/pending-by-date")
                         .param("date", testDate.toString())
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
@@ -157,7 +157,7 @@ class AdminControllerTest {
         loanDTO.setBookId("book456");
 
         // Act & Assert
-        mockMvc.perform(post("/notifications/admin/notify-create-loan")
+        mockMvc.perform(post("/notifications/admin/loan/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loanDTO)))
                 .andExpect(status().isOk())
@@ -173,7 +173,7 @@ class AdminControllerTest {
         boolean returnedInBadCondition = false;
 
         // Act & Assert
-        mockMvc.perform(post("/notifications/admin/notify-return-loan")
+        mockMvc.perform(post("/notifications/admin/loan/return")
                         .param("bookId", bookId)
                         .param("returnedInBadCondition", String.valueOf(returnedInBadCondition)))
                 .andExpect(status().isOk())
@@ -225,5 +225,13 @@ class AdminControllerTest {
         verify(adminService).setFinesRateDay(newRate);
     }
 
-
+    @Test
+    void testGetFinesRate_Success() throws Exception {
+        float defaultRate = 800f;
+        when(adminService.getFinesDayRate()).thenReturn(defaultRate);
+        mockMvc.perform(get("/notifications/admin/fines/rate"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(String.valueOf(defaultRate)));
+        verify(adminService).getFinesDayRate();
+    }
 }

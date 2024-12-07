@@ -4,9 +4,11 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.FineModel;
 import com.spammers.AlertsAndNotifications.model.enums.FineStatus;
 import com.spammers.AlertsAndNotifications.repository.FinesRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,7 @@ public class FineDailyIncrease {
     private final int limitDaysIncrement=20;
     private final int EXECUTIONS = 15;
     private int page = 0;
+    @Getter
     private float fineRate = 800f; // 800 COP per day
 
     public void setFineRate(float fineRate) {
@@ -53,7 +56,7 @@ public class FineDailyIncrease {
     }
 
     private List<FineModel> fetchFines() {
-        Pageable pageable = PageRequest.of(page, EXECUTIONS);
+        Pageable pageable = PageRequest.of(page, EXECUTIONS, Sort.by("expiredDate").descending());
         return finesRepository.pendingFinesAfter(LocalDate.now().minusDays(limitDaysIncrement),
                 FineStatus.PENDING, pageable);
     }
