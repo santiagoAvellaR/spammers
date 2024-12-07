@@ -15,7 +15,12 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-
+/**
+ * This class represents the Daily fine increase component to provide the
+ * features to run a concurrent process to update the fines amount.
+ * @since 12-12-2024
+ * @version 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class FineDailyIncrease {
@@ -35,6 +40,12 @@ public class FineDailyIncrease {
         return fineRate < 0 || fineRate > 10000;
     }
 
+    /**
+     * This method checks every 5 minutes the pending fines
+     * to increase the amount per day by a fine rate that
+     * can be modified by admin.
+     * This task is executed every day since 12:00 AM to 4:00 AM.
+     */
     @Scheduled(cron="0 */5 0-4 * * MON-SUN")
     private void increaseFinesAmount(){
         processFines();

@@ -20,9 +20,13 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
-
+/**
+ * This class implements the Admin Service. Providing the
+ * features to administrate the fines and notifications.
+ * @since 12-12-2024
+ * @version 1.0
+ */
 @RequiredArgsConstructor
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -33,12 +37,20 @@ public class AdminServiceImpl implements AdminService {
     private final NotificationRepository notificationRepository;
     private final ApiClient apiClient=new ApiClientLocal(RestClient.builder().build());
 
+    /**
+     * This method returns a book loan by providing the book id a boolean to indicate
+     * if the book was returned in a bad condition or not.
+     * @param bookId the book id to search book.
+     * @param returnedInBadCondition The given condition of the book, true if it was returned in bad condition,
+     *                               false otherwise.
+     */
     @Override
     public void returnBook(String bookId, boolean returnedInBadCondition) {
         Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
+        //if(loanModel.get().getFines().stream().anyMatch(fineModel -> fineModel.getFineStatus().equals(FineStatus.PENDING))) throw new SpammersPrivateExceptions("THE LOAN HAS PENDING FINES, IT CAN'T BE RETORNED",404);
         UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -166,6 +178,10 @@ public class AdminServiceImpl implements AdminService {
         fineDailyIncrease.setFineRate(rate);
     }
 
+    /**
+     * This method returns the fines day rate.
+     * @return float The fines day rate.
+     */
     @Override
     public float getFinesDayRate() {
         return fineDailyIncrease.getFineRate();

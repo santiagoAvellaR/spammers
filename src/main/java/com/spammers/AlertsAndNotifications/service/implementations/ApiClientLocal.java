@@ -9,10 +9,10 @@ import java.util.Map;
 @Component
 public class ApiClientLocal extends ApiClient {
     HashMap<String, UserInfo> users = new HashMap<>(Map.of(
-            "miguel-123", new UserInfo("miguel","Miguel Guardian","aldandaniel535@gmail.com"),
-            "raul-123",new UserInfo("raul","raul Guardian", "santiago.avellaneda@mail.escuelaing.edu.co"),
-            "samuel-123",new UserInfo("samuel","samuel Guardian", "jorge.gamboa-s@mail.escuelaing.edu.co"),
-            "user123", new UserInfo("user123", "Test User", "guardian@email.com") ));
+            "miguel-123", new UserInfo("Miguel","Miguel Guardian","miguelangelmu2016@gmail.com"),
+            "santi-123",new UserInfo("Santi","santi Guardian", "santiago.avellaneda@mail.escuelaing.edu.co"),
+            "jorge-123",new UserInfo("Jorge","Jorge Guardian", "jorge.gamboa-s@mail.escuelaing.edu.co"),
+            "daniel-123", new UserInfo("Daniel", "daniel Guardian", "aldandaniel535@gmail.com") ));
 
     public ApiClientLocal(RestClient restClient) {
         super(restClient);
