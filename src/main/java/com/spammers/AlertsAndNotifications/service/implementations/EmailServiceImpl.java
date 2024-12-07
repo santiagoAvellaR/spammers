@@ -47,7 +47,7 @@ public class EmailServiceImpl implements EmailService {
             logger.info("Email sent correctly!");
         } catch (MailException e) {
             logger.error("There has been an error, the email was not correctly sent: "+e.getMessage());
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION);
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION, 500);
         }
     }
 
@@ -71,7 +71,7 @@ public class EmailServiceImpl implements EmailService {
             logger.info("Email sent correctly using template: {}", template.name());
         } catch (MailException e) {
             logger.error("There has been an error, the email was not correctly sent: {}", e.getMessage());
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION);
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.EMAIL_EXCEPTION, 500);
         }
     }
 

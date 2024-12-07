@@ -1,5 +1,6 @@
 package com.spammers.AlertsAndNotifications.service.implementations;
 
+import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.LoanModel;
 import com.spammers.AlertsAndNotifications.model.NotificationModel;
 import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
@@ -9,6 +10,8 @@ import com.spammers.AlertsAndNotifications.repository.LoanRepository;
 import com.spammers.AlertsAndNotifications.repository.NotificationRepository;
 import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +29,7 @@ public class LoanThreeDaysBfReturnAlert {
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
     private final ApiClient apiClient;
+    private final Logger logger = LoggerFactory.getLogger(LoanThreeDaysBfReturnAlert.class);
     private int page = 0;
     private final int EXECUTIONS = 15;
     @Scheduled(cron = "0 */10 11-13 * * *")
@@ -56,11 +60,16 @@ public class LoanThreeDaysBfReturnAlert {
     }
 
     private void sendEmail(LoanModel loan) {
-        UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
-        emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
-                ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
-        NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
-                , LocalDate.now() , NotificationType.ALERT, false, loan.getBookName());
-        notificationRepository.save(notificationModel);
+        try {
+            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
+            emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
+                    ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+            NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
+                    , LocalDate.now() , NotificationType.ALERT, false, loan.getBookName());
+            notificationRepository.save(notificationModel);
+        }catch (Exception ex){
+            logger.error("Exception sending an automated email {}", ex.getMessage());
+        }
+
     }
 }

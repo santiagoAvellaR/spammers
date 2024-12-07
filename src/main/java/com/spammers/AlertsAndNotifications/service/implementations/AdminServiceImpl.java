@@ -37,12 +37,12 @@ public class AdminServiceImpl implements AdminService {
     public void returnBook(String bookId, boolean returnedInBadCondition) {
         Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
         UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                userInfo.getGuardianEmail(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
+                userInfo.getGuardianName(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
         loanModel.get().setBookReturned(true);
         loanRepository.save(loanModel.get());
@@ -78,7 +78,7 @@ public class AdminServiceImpl implements AdminService {
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description);
         }
         else {
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND);
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
     }
 
@@ -105,7 +105,7 @@ public class AdminServiceImpl implements AdminService {
             notificationRepository.save(notification);
             emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
         } else{
-            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND);
+            throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND, 404);
         }
     }
 
