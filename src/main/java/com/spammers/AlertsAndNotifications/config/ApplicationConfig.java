@@ -23,7 +23,7 @@ public class ApplicationConfig {
                                 .name("Authorization")
                                 .type(SecurityScheme.Type.APIKEY)
                                 .in(SecurityScheme.In.HEADER)
-                                .bearerFormat("JWT") // Especificamos que es un JWT
+                                .bearerFormat("JWT")
                         ))
                 .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement()
                         .addList("bearer-key"));

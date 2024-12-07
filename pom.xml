@@ -41,7 +41,8 @@
 			**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.java,
-			**/com/spammers/AlertsAndNotifications/config/**
+			**/com/spammers/AlertsAndNotifications/config/**,
+			**/com/spammers/AlertsAndNotifications/controller/SpammerExceptionHandlerController.java
 		</sonar.coverage.exclusions>
 
 	</properties>
@@ -152,6 +153,7 @@
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanExpiredNotification.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/controller/SpammerExceptionHandlerController.class</exclude>
 							</excludes>
 						</configuration>
 					</execution>
