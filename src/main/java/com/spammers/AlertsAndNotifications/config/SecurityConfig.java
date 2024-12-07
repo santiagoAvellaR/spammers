@@ -16,9 +16,9 @@ public class SecurityConfig {
         return security
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
-                                        .requestMatchers("/notifications/admin/**").hasRole("ADMIN")
-                                        .requestMatchers("/usersNotifications/**").hasRole("STUDENT").
+                        request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll().
+                        //                .requestMatchers("/notifications/admin/**").hasRole("ADMIN")
+                        //                .requestMatchers("/usersNotifications/**").hasRole("STUDENT").
 
                         anyRequest().authenticated())
                 //.formLogin(AbstractHttpConfigurer::disable)

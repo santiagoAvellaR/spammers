@@ -83,8 +83,8 @@ class SpammersControllerTest {
         int size = 10;
 
         List<FineOutputDTO> fines = Arrays.asList(
-                new FineOutputDTO("fine1","Description 1",50.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Boulevard"),
-                new FineOutputDTO("fine2","Description 2",75.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Harry Potter")
+                new FineOutputDTO("fine1","Description 1",50.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Boulevard","Miguel","example1@gmail.com"),
+                new FineOutputDTO("fine2","Description 2",75.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Harry Potter","Harry","example2@gmail.com")
         );
 
         PaginatedResponseDTO<FineOutputDTO> responseDTO = new PaginatedResponseDTO<>(
@@ -102,7 +102,11 @@ class SpammersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(2))
                 .andExpect(jsonPath("$.data[0].fineId").value("fine1"))
-                .andExpect(jsonPath("$.data[1].fineId").value("fine2"));
+                .andExpect(jsonPath("$.data[1].fineId").value("fine2"))
+                .andExpect(jsonPath("$.data[0].studentName").value("Miguel"))
+                .andExpect(jsonPath("$.data[1].studentName").value("Harry"))
+                .andExpect(jsonPath("$.data[0].guardianEmail").value("example1@gmail.com"))
+                .andExpect(jsonPath("$.data[1].guardianEmail").value("example2@gmail.com"));
 
         // Verify service method was called
         verify(notificationService).getFinesByUserId(eq(userId), eq(page), eq(size));

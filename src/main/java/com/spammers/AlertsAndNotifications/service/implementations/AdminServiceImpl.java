@@ -64,12 +64,14 @@ public class AdminServiceImpl implements AdminService {
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
-            String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
+            UserInfo userInfo = apiClient.getUserInfoById(fineInputDTO.getUserId());
+            String email = userInfo.getGuardianEmail();
+            String studentName = userInfo.getName();
             String description;
             if(fineInputDTO.getDescription()==null || fineInputDTO.getDescription().isBlank()){
                 description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
             } else description = fineInputDTO.getDescription();
-            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).studentName(studentName).guardianEmail(email).build();
             finesRepository.save(fineModel);
             NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
