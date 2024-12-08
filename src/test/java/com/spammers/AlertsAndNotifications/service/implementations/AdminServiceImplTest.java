@@ -51,7 +51,7 @@ class AdminServiceImplTest {
     private NotificationRepository notificationRepository;
 
     @Mock
-    private ApiClient apiClient;
+    private ApiClientLocal apiClient;
 
     @Mock
     FineDailyIncrease fineDailyIncrease;
@@ -91,7 +91,7 @@ class AdminServiceImplTest {
                 any(EmailTemplate.class),
                 anyString()
         );
-
+        when(apiClient.getUserInfoById(loanDTO.getUserId())).thenReturn(userInfo);
         // Act
         adminService.notifyLoan(loanDTO);
 
@@ -126,7 +126,7 @@ class AdminServiceImplTest {
                 any(LocalDate.class),
                 eq(FineDescription.DAMAGED_MATERIAL.getDescription())
         );
-
+        when(apiClient.getUserInfoById("user123")).thenReturn(userInfo);
         // Act
         adminService.openFine(fineInputDTO);
 
@@ -248,7 +248,7 @@ class AdminServiceImplTest {
         // Arrange
         when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
-
+        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.returnBook("book456", false);
 
@@ -269,7 +269,7 @@ class AdminServiceImplTest {
         loanModel.setLoanDate(LocalDate.now().minusDays(20)); // Late return
         when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
-
+        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.returnBook("book456", true);
 
@@ -304,7 +304,7 @@ class AdminServiceImplTest {
         fineModel.setDescription("Late return fine");
 
         when(finesRepository.findById("fine123")).thenReturn(Optional.of(fineModel));
-
+        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.closeFine("fine123");
 
@@ -393,7 +393,7 @@ class AdminServiceImplTest {
 
         when(loanRepository.findLastLoan("book456", "user123"))
                 .thenReturn(Optional.of(loanModel));
-
+        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.openFine(fineInputDTO);
 
