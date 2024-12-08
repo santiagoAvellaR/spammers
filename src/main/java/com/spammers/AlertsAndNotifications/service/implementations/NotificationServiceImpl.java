@@ -28,7 +28,14 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
 
 
-
+    /**
+     * This method returns a paginated response of fines by a given user id and
+     * the page response specifications.
+     * @param userId The user id to filter the fines.
+     * @param pageNumber the current page number.
+     * @param pageSize the page size (max number of fines in the page)
+     * @return the page response of fines.
+     */
     @Override
     public PaginatedResponseDTO<FineOutputDTO> getFinesByUserId(String userId, int pageNumber, int pageSize){
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -36,6 +43,13 @@ public class NotificationServiceImpl implements NotificationService {
         return FineOutputDTO.encapsulateFineModelOnDTO(page);
     }
 
+    /**
+     * This method returns the page response of notifications by a given user id.
+     * @param userId The user id to filter the notifications
+     * @param pageNumber the current page number.
+     * @param pageSize the page size (max number of notifications in the page).
+     * @return the response of notifications.
+     */
     @Override
     public PaginatedResponseDTO<NotificationDTO> getNotifications(String userId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);

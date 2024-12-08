@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/usersNotifications/")
+@RequestMapping("/notifications/users")
 public class SpammersController {
 
     private final NotificationService notificationService;
@@ -23,7 +23,7 @@ public class SpammersController {
      * @param size   The number of items per page.
      * @return A map containing the notifications associated with the user.
      */
-    @GetMapping("/users/{userId}")
+    @GetMapping("/user/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public PaginatedResponseDTO<NotificationDTO> getNotifications(
             @PathVariable("userId") String userId,
@@ -37,7 +37,7 @@ public class SpammersController {
      * @param userId The user id
      * @return the fines of the user.
      */
-    @GetMapping("/users/{userId}/fines")
+    @GetMapping("/fines/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public PaginatedResponseDTO<FineOutputDTO> getFines(
             @PathVariable("userId") String userId,

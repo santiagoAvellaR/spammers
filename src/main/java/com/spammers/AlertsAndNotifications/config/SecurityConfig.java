@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                         .requestMatchers("/notifications/admin/**").hasRole("ADMIN")
-                                        .requestMatchers("/usersNotifications/**").hasRole("STUDENT").
+                                        .requestMatchers("/notifications/users/**").hasRole("STUDENT").
 
                         anyRequest().authenticated())
                 //.formLogin(AbstractHttpConfigurer::disable)

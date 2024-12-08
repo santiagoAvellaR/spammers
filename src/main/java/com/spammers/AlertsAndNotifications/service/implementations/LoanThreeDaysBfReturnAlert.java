@@ -20,7 +20,11 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-
+/**
+ * This class provides the daily check of expired loans.
+ * @since 12-12-2024
+ * @version 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class LoanThreeDaysBfReturnAlert {
@@ -32,6 +36,10 @@ public class LoanThreeDaysBfReturnAlert {
     private final Logger logger = LoggerFactory.getLogger(LoanThreeDaysBfReturnAlert.class);
     private int page = 0;
     private final int EXECUTIONS = 15;
+
+    /**
+     * This method checks the
+     */
     @Scheduled(cron = "0 */10 11-13 * * *")
     private void checkLoans(){
         processEmails();

@@ -11,37 +11,25 @@
   - [💻 Requisitos de Sistema](#requisitos-de-sistema)
   - [📦 Dependencias del Proyecto](#dependencias-del-proyecto)
 
-3. [🔧 Configuración del Entorno de Desarrollo](#configuración-del-entorno-de-desarrollo)
-  - [Instalación de JDK](#1-instalación-de-jdk)
-  - [Instalación de Maven](#2-instalación-de-maven)
-  - [Configuración de Base de Datos](#3-configuración-de-base-de-datos)
-
-4. [📂 Instalación del Proyecto](#instalación-del-proyecto)
+3. [🔧 Instalación del proyecto](#instalacion-del-proyecto)
   - [Clonar el Repositorio](#clonar-el-repositorio)
-  - [Configurar Dependencias](#configurar-dependencias)
+  - [Configurar Dependencias](#configuración-de-aplicación)
   - [Configuración de Aplicación](#configuración-de-aplicación)
   - [Ejecutar la Aplicación](#ejecutar-la-aplicación)
 
-5. [🔍 Endpoints](#endpoints)
-  - [1. Obtener Notificaciones](#1-obtener-notificaciones)
-  - [2. Obtener Multas](#2-obtener-multas)
-  - [3. Notificar Préstamo](#3-notificar-préstamo)
-  - [4. Cerrar Préstamo](#4-cerrar-préstamo)
-  - [5. Devolución de Libro](#5-devolución-de-libro)
+4. [🔍 Endpoints](#endpoints)
+  - [Endpoints de Usuario](#endpoints-de-usuario)
+  - [Endpoints de Administrador](#endpoints-de-administrador)
 
-6. [🛠️ Herramientas de Desarrollo](#herramientas-de-desarrollo-adicionales)
+5. [🛠️ Herramientas de Desarrollo](#herramientas-de-desarrollo-adicionales)
 
-7. [🔧 Resolución de Problemas](#resolución-de-problemas)
+6. [🔧 Resolución de Problemas](#resolución-de-problemas)
 
-8. [👥 Colaboradores](#collaborators)
+7. [👥 Colaboradores](#collaborators)
+
 ## Acerca del proyecto
-El Módulo de Alertas y Notificaciones es un componente crítico 
-del Sistema de Gestión Bibliotecaria desarrollado para el 
-Colegio Nuestra Señora de la Sabiduría. Su objetivo principal 
-es mantener informados a los responsables económicos sobre 
-el estado de los préstamos de libros de los estudiantes, 
-mejorando la comunicación y el seguimiento de las actividades 
-bibliotecarias.
+
+El Módulo de Alertas y Notificaciones es un componente crítico del Sistema de Gestión Bibliotecaria desarrollado para el Colegio Nuestra Señora de la Sabiduría. Su objetivo principal es mantener informados a los responsables económicos sobre el estado de los préstamos de libros de los estudiantes, mejorando la comunicación y el seguimiento de las actividades bibliotecarias.
 
 ## Características Principales
 
@@ -72,6 +60,7 @@ bibliotecarias.
 - Seguimiento detallado del estado de los préstamos
 
 ## Empezando
+
 ### Requisitos de Sistema
 - **Java Development Kit (JDK)**: Versión 17
 - **Maven**: Versión 3.6.3 o superior
@@ -92,188 +81,128 @@ El proyecto utiliza las siguientes tecnologías principales:
 - JUnit 5
 - SpringDoc OpenAPI
 
-## Configuración del Entorno de Desarrollo
-
-### 1. Instalación de JDK
-1. Descargar e instalar OpenJDK 17
-  - [Descargar OpenJDK 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
-2. Configurar variable de entorno JAVA_HOME
-
-### 2. Instalación de Maven
-1. Descargar Maven
-  - [Descargar Apache Maven](https://maven.apache.org/download.cgi)
-2. Configurar variable de entorno PATH
-
-### 3. Configuración de Base de Datos
-- Instalar PostgreSQL
-- Crear base de datos para el proyecto
-- Configurar credenciales en `application.properties`
-
 ## Instalación del Proyecto
 
 ### Clonar el Repositorio
-```bash
-git clone https://github.com/thesrcielos/spammers
-cd Alerts-Notification
-```
-
-### Configurar Dependencias
-```bash
-# Limpiar y compilar el proyecto
-mvn clean install
-
-# Instalar dependencias
-mvn dependency:resolve
+```bash  
+git clone https://github.com/thesrcielos/spammerscd Alerts-Notification  
+  
+### Configurar Dependencias  
+bash  
+# Limpiar y compilar el proyecto  
+mvn clean install  
+  
+# Instalar dependencias  
+mvn dependency:resolve  
 ```
 
 ### Configuración de Aplicación
 
 #### Archivo de Configuración
 Crear/Editar `src/main/resources/application.properties`:
-```properties
-# Configuraciones de base de datos
-spring.datasource.url=jdbc:postgresql://localhost:5432/nombre_base_datos
-spring.datasource.username=tu_usuario
-spring.datasource.password=tu_contraseña
-
-# Configuraciones de JPA
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-
-# Configuraciones de correo servicio
-spring.mail.host=smtp.example.com
-spring.mail.port=587
-spring.mail.username=tu_correo
-spring.mail.password=tu_contraseña
-```
+```properties  
+# Configuraciones de base de datos  
+spring.datasource.url=jdbc:postgresql://localhost:5432/nombre_base_datos  
+spring.datasource.username=tu_usuario  
+spring.datasource.password=tu_contraseña  
+  
+# Configuraciones de JPA  
+spring.jpa.hibernate.ddl-auto=update  
+spring.jpa.show-sql=true  
+  
+# Configuraciones de correo servicio  
+spring.mail.host=smtp.example.com  
+spring.mail.port=587  
+spring.mail.username=tu_correo  
+spring.mail.password=tu_contraseña  
+```  
 
 ### Ejecutar la Aplicación
-```bash
-# Ejecutar la aplicación
-mvn spring-boot:run
+```bash  
+# Ejecutar la aplicación  
+mvn spring-boot:run  
+  
+# Generar archivo JAR  
+mvn package  
+```  
+## Endpoints
 
-# Generar archivo JAR
-mvn package
+El [`SpammersController`](#spammers-controller) y [`AdminController`](#admin-controller) son controladores REST en una   
+aplicación Spring Boot diseñado para gestionar notificaciones   
+y multas de libros. Este controlador proporciona   
+endpoints para interactuar con las notificaciones de   
+usuarios, multas y algunas operaciones de préstamos.
+
+### Endpoints de Usuario
+
+| Endpoint | Método | Descripción | Parámetros | Respuesta |
+|----------|--------|-------------|------------|-----------|
+| `/notifications/users/user/{userId}` | `GET` | Obtener notificaciones de usuario | `userId`: ID de usuario<br>`page`: Número de página<br>`size`: Elementos por página | Notificaciones paginadas |
+| `/notifications/users/fines/{userId}` | `GET` | Obtener multas de usuario | `userId`: ID de usuario<br>`page`: Número de página<br>`size`: Elementos por página | Multas paginadas |
+| `/notifications/users/mark-seen/{notificationId}` | `PUT` | Marcar notificación como vista | `notificationId`: ID de notificación | Número de filas actualizadas |
+| `/notifications/users/count/{userId}` | `GET` | Obtener conteo de notificaciones no leídas | `userId`: ID de usuario | Información de notificaciones |
+
+### Endpoints de Administrador
+
+| Endpoint | Método | Descripción | Parámetros | Respuesta |
+|----------|--------|-------------|------------|-----------|
+| `/notifications/admin/loan/create` | `POST` | Notificar préstamo | Datos de préstamo (LoanDTO) | "Notification Sent!" |
+| `/notifications/admin/loan/return` | `POST` | Devolución de libro | `bookId`: ID de libro<br>`returnedInBadCondition`: Estado del libro | "Book Returned" |
+| `/notifications/admin/users/{userId}/fines/create` | `POST` | Crear multa | `userId`: ID de usuario<br>Datos de multa (FineInputDTO) | "Fine Created" |
+| `/notifications/admin/users/fines/{fineId}/close` | `PUT` | Cerrar multa | `fineId`: ID de multa | "Fine Closed" |
+| `/notifications/admin/fines/{newRate}/rate` | `PUT` | Modificar tasa de incremento de multa | `newRate`: Nueva tasa | "Fine updated Correctly" |
+| `/notifications/admin/fines/rate` | `GET` | Consultar tasa de incremento de multa | Ninguno | Tasa de multa |
+| `/notifications/admin/fines-pending` | `GET` | Consultar multas pendientes | `page`: Número de página<br>`size`: Elementos por página | Multas pendientes paginadas |
+| `/notifications/admin/fines` | `GET` | Consultar multas por fecha | `date`: Fecha de búsqueda<br>`page`: Número de página<br>`size`: Elementos por página | Multas paginadas |
+
+## Estructura de Modelos
+
+### Loan DTO
+```json
+{
+  "userId": "string",
+  "emailGuardian": "string",
+  "bookId": "string",
+  "bookName": "string",
+  "loanReturn": "LocalDate"
+}
 ```
 
-## Perfiles de Ejecución
-- **Desarrollo**: Usar configuración de desarrollo
-- **Producción**: Configurar variables de entorno específicas
+### Fine Input DTO
+```json
+{
+  "amount": "number($float)",
+  "fineType": "string (DAMAGE, RETARDMENT)",
+  "bookId": "string",
+  "userId": "string",
+  "description": "string"
+}
+```
 
-## Herramientas de Desarrollo Adicionales
-- **Documentación API**: Swagger UI (disponible en `/swagger-ui.html`)
-- **Cobertura de Código**: JaCoCo
-- **Análisis de Código**: SonarCloud configurado
+### Fine Output DTO
+```json
+{
+  "fineId": "string",
+  "description": "string",
+  "amount": "number($float)",
+  "fineStatus": "string (PENDING, PAID, FORGIVEN)",
+  "fineType": "string (DAMAGE, RETARDMENT)",
+  "expiredDate": "string($date)",
+  "bookTitle": "string",
+  "studentName": "string",
+  "guardianEmail": "string"
+}
+```
 
 ## Resolución de Problemas
 - Verificar versiones de Java y Maven
 - Asegurar conexión a base de datos
 - Revisar configuraciones de `application.properties`
 
-## Notas Adicionales
-- Proyecto excluye de cobertura de código:
-  - Clases de excepciones
-  - Clases de modelo
-  - Clases de configuración
-  - Implementaciones de servicios específicos
-## Uso
-El `SpammersController` es un controlador REST en una 
-aplicación Spring Boot diseñado para gestionar notificaciones 
-y préstamos de libros. Este controlador proporciona 
-endpoints para interactuar con las notificaciones de 
-usuarios, multas y operaciones de préstamos.
+## Herramientas de Desarrollo Adicionales
+- **Documentación API**: Swagger UI (disponible en `/swagger-ui.html`)
+- **Cobertura de Código**: JaCoCo
+- **Análisis de Código**: SonarCloud configurado
 
-##   Endpoints
-
-### 1. Obtener Notificaciones
-- **URL**: `/notifications/notifications`
-- **Método**: GET
-- **Parámetros**:
-  - `userId` (String, requerido): Identificador del usuario
-- **Respuesta**: Lista de `NotificationModel`
-- **Código de Estado**: 200 OK
-
-### 2. Obtener Multas
-- **URL**: `/notifications/fines`
-- **Método**: GET
-- **Parámetros**:
-  - `userId` (String, requerido): Identificador del usuario
-- **Respuesta**: Lista de `FineModel`
-- **Código de Estado**: 200 OK
-
-### 3. Notificar Préstamo
-- **URL**: `/notifications/notify-loan`
-- **Método**: POST
-- **Cuerpo de la Solicitud**: `LoanDTO`
-  - Contiene información del préstamo:
-    - ID de usuario
-    - ID de libro
-    - Correo electrónico del padre
-    - Nombre del libro
-    - Fecha de devolución
-- **Respuesta**: Mensaje de texto "Notification Sent!"
-- **Código de Estado**: 200 OK
-
-### 4. Cerrar Préstamo
-- **URL**: `/notifications/close-loan`
-- **Método**: PUT
-- **Parámetros**:
-  - `bookId` (String, requerido): Identificador del libro
-  - `userId` (String, requerido): Identificador del usuario
-- **Respuesta**: Mensaje de texto "Loan Closed!"
-- **Código de Estado**: 200 OK
-
-### 5. Devolución de Libro
-- **URL**: `/notifications/create-return`
-- **Método**: POST
-- **Parámetros**:
-  - `bookId` (String, requerido): Identificador del libro
-  - `returnedInBadCondition` (boolean, requerido): Indica si el libro fue devuelto en mal estado
-- **Respuesta**: Mensaje de texto "Book Returned"
-- **Código de Estado**: 200 OK
-- **Excepción**: Lanza `SpammersPrivateExceptions` si no se encuentra el registro de préstamo
-
-## Dependencias
-- `NotificationService`: Servicio que implementa la lógica de negocio para notificaciones y préstamos
-
-## Consideraciones
-- Utiliza anotaciones de Spring Boot para definir endpoints REST
-- Maneja diferentes escenarios de notificaciones relacionadas con préstamos de libros
-- Proporciona endpoints para gestionar el ciclo de vida de un préstamo
-
-## Ejemplos de Uso
-
-### Obtener Notificaciones
-```http
-GET /notifications/notifications?userId=user123
-```
-
-### Notificar Préstamo
-El `LoanDTO` (Data Transfer Object) es un objeto que encapsula la información necesaria para generar una notificación de préstamo de libro.
-
-### Estructura del Modelo
-
-| Campo | Tipo | Descripción | Ejemplo |
-|-------|------|-------------|---------|
-| `userId` | String | Identificador único del estudiante que realiza el préstamo | "user123" |
-| `emailGuardian` | String | Correo electrónico del responsable económico | "parent@example.com" |
-| `bookId` | String | Identificador único del libro prestado | "book456" |
-| `bookName` | String | Nombre o título del libro | "Libro de Matemáticas" |
-| `loanReturn` | LocalDate | Fecha límite para la devolución del libro | "2024-02-15" |
-
-#### Ejemplo de Uso:
-```http
-POST /notifications/notify-loan
-Content-Type: application/json
-
-{
-  "userId": "user123",
-  "emailGuardian": "parent@example.com", 
-  "bookId": "book456",
-  "bookName": "Libro de Matemáticas",
-  "loanReturn": "2024-02-15"
-}
-```
-
-## Collaborators
-Our GitHub profiles.
+## Colaboradores
+[Perfiles de GitHub de los colaboradores]

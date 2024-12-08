@@ -20,9 +20,13 @@ import org.springframework.web.client.RestClient;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
-
+/**
+ * This class implements the Admin Service. Providing the
+ * features to administrate the fines and notifications.
+ * @since 12-12-2024
+ * @version 1.0
+ */
 @RequiredArgsConstructor
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -31,14 +35,22 @@ public class AdminServiceImpl implements AdminService {
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
-    private final ApiClient apiClient=new ApiClientLocal(RestClient.builder().build());
+    private final ApiClientLocal apiClient;
 
+    /**
+     * This method returns a book loan by providing the book id a boolean to indicate
+     * if the book was returned in a bad condition or not.
+     * @param bookId the book id to search book.
+     * @param returnedInBadCondition The given condition of the book, true if it was returned in bad condition,
+     *                               false otherwise.
+     */
     @Override
     public void returnBook(String bookId, boolean returnedInBadCondition) {
         Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
+        //if(loanModel.get().getFines().stream().anyMatch(fineModel -> fineModel.getFineStatus().equals(FineStatus.PENDING))) throw new SpammersPrivateExceptions("THE LOAN HAS PENDING FINES, IT CAN'T BE RETORNED",404);
         UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -64,12 +76,14 @@ public class AdminServiceImpl implements AdminService {
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
-            String email = apiClient.getUserInfoById(fineInputDTO.getUserId()).getGuardianEmail();
+            UserInfo userInfo = apiClient.getUserInfoById(fineInputDTO.getUserId());
+            String email = userInfo.getGuardianEmail();
+            String studentName = userInfo.getName();
             String description;
             if(fineInputDTO.getDescription()==null || fineInputDTO.getDescription().isBlank()){
                 description = fineInputDTO.getFineType() == FineType.DAMAGE ? FineDescription.DAMAGED_MATERIAL.getDescription() : FineDescription.RETARDMENT.getDescription();
             } else description = fineInputDTO.getDescription();
-            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).build();
+            FineModel fineModel = FineModel.builder().loan(loan).description(description).amount(fineInputDTO.getAmount()).expiredDate(currentDate).fineStatus(FineStatus.PENDING).fineType(fineInputDTO.getFineType()).studentName(studentName).guardianEmail(email).build();
             finesRepository.save(fineModel);
             NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
@@ -162,6 +176,15 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public void setFinesRateDay(float rate) {
         fineDailyIncrease.setFineRate(rate);
+    }
+
+    /**
+     * This method returns the fines day rate.
+     * @return float The fines day rate.
+     */
+    @Override
+    public float getFinesDayRate() {
+        return fineDailyIncrease.getFineRate();
     }
 
     private int daysDifference(LocalDate deadline){

@@ -24,6 +24,8 @@ public class FineOutputDTO {
     private FineType fineType;
     private LocalDate expiredDate;
     private String bookTitle;
+    private String studentName;
+    private String guardianEmail;
 
     /**
      * Converts a FineModel object into a FineOutputDTO.
@@ -39,7 +41,9 @@ public class FineOutputDTO {
                 fineModel.getFineStatus(),
                 fineModel.getFineType(),
                 fineModel.getExpiredDate(),
-                fineModel.getLoan().getBookName()
+                fineModel.getLoan().getBookName(),
+                fineModel.getStudentName(),
+                fineModel.getGuardianEmail()
         );
     }
 
