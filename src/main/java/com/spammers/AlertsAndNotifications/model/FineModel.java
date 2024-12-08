@@ -16,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class FineModel {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -34,6 +35,12 @@ public class FineModel {
     @Column(name="expiredDate", nullable = false)
     private LocalDate expiredDate;
 
+    @Column(name="studentName", nullable = false)
+    private String studentName;
+
+    @Column(name="guardianEmail", nullable = false)
+    private String guardianEmail;
+
     @Column(name="fineStatus", nullable = false)
     private FineStatus fineStatus;
   
@@ -43,6 +50,4 @@ public class FineModel {
     @OneToMany(mappedBy = "fine", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<FineNotification> fineNotifications;
 
-    public FineModel() {
-    }
 }

@@ -20,14 +20,28 @@ public class AdminController {
     private final AdminService adminService;
 
 
-
-    @GetMapping("/loans-about-expire")
+    /**
+     * Retrieves all active fines (with status PENDING) within a specific date
+     * and returns them in a paginated response.
+     * @param date the date to filter the fines
+     * @param page the current page of the request.
+     * @param size the size of the page requested.
+     * @return The paginated response of fines.
+     */
+    @GetMapping("/fines/pending-by-date")
     @ResponseStatus(HttpStatus.OK)
     public PaginatedResponseDTO<FineOutputDTO> getPendingFinesByDate(@RequestParam LocalDate date,
                                                                      @RequestParam int page, @RequestParam int size){
         return adminService.returnAllActiveFinesBetweenDate(date, size, page);
     }
 
+    /**
+     * This method returns all active fines (with status PENDING)
+     * in a paginated response.
+     * @param page the current page of the request.
+     * @param size the size of the page requested.
+     * @return The paginated response of fines.
+     */
     @GetMapping("/fines-pending")
     @ResponseStatus(HttpStatus.OK)
     public PaginatedResponseDTO<FineOutputDTO> getPendingFines(@RequestParam int page, @RequestParam int size){
@@ -46,6 +60,16 @@ public class AdminController {
         return "Fine updated Correctly";
     }
 
+    /**
+     * This method allows consult the fines day rate.
+     * @return the fines day rate.
+     */
+    @GetMapping("/fines/rate")
+    @ResponseStatus(HttpStatus.OK)
+    public float getFinesDayRate(){
+        return adminService.getFinesDayRate();
+    }
+
 
     /**
      * This method sends a notification of a loan created.
@@ -54,7 +78,7 @@ public class AdminController {
      *                return date)
      * @return A message of successfully sent notification.
      */
-    @PostMapping("/notify-create-loan")
+    @PostMapping("/loan/create")
     @ResponseStatus(HttpStatus.OK)
     public String notifyLoan(@RequestBody LoanDTO loanDTO){
         adminService.notifyLoan(loanDTO);
@@ -71,7 +95,7 @@ public class AdminController {
      * @return A message confirming that the book return notification was sent.
      * @throws SpammersPrivateExceptions if the loan record is not found for the given bookId.
      */
-    @PostMapping("/notify-return-loan")
+    @PostMapping("/loan/return")
     @ResponseStatus(HttpStatus.OK)
     public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition) {
         adminService.returnBook(bookId, returnedInBadCondition);

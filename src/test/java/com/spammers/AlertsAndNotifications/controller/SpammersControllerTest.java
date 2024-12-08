@@ -63,7 +63,7 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/usersNotifications/users/{userId}", userId)
+        mockMvc.perform(get("/notifications/users/user/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
@@ -83,8 +83,8 @@ class SpammersControllerTest {
         int size = 10;
 
         List<FineOutputDTO> fines = Arrays.asList(
-                new FineOutputDTO("fine1","Description 1",50.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Boulevard"),
-                new FineOutputDTO("fine2","Description 2",75.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Harry Potter")
+                new FineOutputDTO("fine1","Description 1",50.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Boulevard","Miguel","example1@gmail.com"),
+                new FineOutputDTO("fine2","Description 2",75.0f, FineStatus.PENDING, FineType.DAMAGE,LocalDate.now(),"Harry Potter","Harry","example2@gmail.com")
         );
 
         PaginatedResponseDTO<FineOutputDTO> responseDTO = new PaginatedResponseDTO<>(
@@ -96,13 +96,17 @@ class SpammersControllerTest {
                 .thenReturn(responseDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/usersNotifications/users/{userId}/fines", userId)
+        mockMvc.perform(get("/notifications/users/fines/{userId}", userId)
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(2))
                 .andExpect(jsonPath("$.data[0].fineId").value("fine1"))
-                .andExpect(jsonPath("$.data[1].fineId").value("fine2"));
+                .andExpect(jsonPath("$.data[1].fineId").value("fine2"))
+                .andExpect(jsonPath("$.data[0].studentName").value("Miguel"))
+                .andExpect(jsonPath("$.data[1].studentName").value("Harry"))
+                .andExpect(jsonPath("$.data[0].guardianEmail").value("example1@gmail.com"))
+                .andExpect(jsonPath("$.data[1].guardianEmail").value("example2@gmail.com"));
 
         // Verify service method was called
         verify(notificationService).getFinesByUserId(eq(userId), eq(page), eq(size));
@@ -116,7 +120,7 @@ class SpammersControllerTest {
         UserNotificationsInformationDTO userNotificationsInformationDTO = new UserNotificationsInformationDTO(notificationsNotSeen, activeFines);
         when(notificationService.getNumberNotificationsNotSeenByUser(userId))
                 .thenReturn(userNotificationsInformationDTO);
-        mockMvc.perform(get("/usersNotifications/count/{userId}", userId))
+        mockMvc.perform(get("/notifications/users/count/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.numberNotificationsNotSeen").value(notificationsNotSeen))
                 .andExpect(jsonPath("$.numberActiveFines").value(activeFines));
@@ -128,7 +132,7 @@ class SpammersControllerTest {
         int changedNotifications = 1;
         when(notificationService.markNotificationAsSeen(notificationId))
                 .thenReturn(changedNotifications);
-        mockMvc.perform(put("/usersNotifications/mark-seen/{notificationId}", notificationId))
+        mockMvc.perform(put("/notifications/users/mark-seen/{notificationId}", notificationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value(changedNotifications));
     }
