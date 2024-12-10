@@ -11,6 +11,8 @@ import com.spammers.AlertsAndNotifications.service.interfaces.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,6 +38,7 @@ public class LoanExpiredNotification {
     private final ApiClient apiClient;
     private final Logger logger = LoggerFactory.getLogger(LoanExpiredNotification.class);
     private final int EXECUTIONS = 15;
+    private String token;
     private int page = 0;
     
     /**
@@ -52,6 +55,7 @@ public class LoanExpiredNotification {
         LocalTime comparisonTime = LocalTime.of(10, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
+            token = null;
         }
     }
 
@@ -61,13 +65,15 @@ public class LoanExpiredNotification {
             return;
         }
         for (LoanModel loan : loans) {
-
             sendEmail(loan);
         }
     }
 
     private List<LoanModel> fetchEmailsToSend() {
         Pageable pageable = PageRequest.of(page, EXECUTIONS, Sort.by("loanExpired").ascending());
+        if(page == 0){
+            token = apiClient.getToken();
+        }
         return loanRepository.findExpiredLoans(LocalDate.now(), pageable);
     }
 

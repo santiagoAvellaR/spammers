@@ -33,6 +33,7 @@ public class LoanThreeDaysBfReturnAlert {
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
     private final ApiClient apiClient;
+    private String token;
     private final Logger logger = LoggerFactory.getLogger(LoanThreeDaysBfReturnAlert.class);
     private int page = 0;
     private final int EXECUTIONS = 15;
@@ -50,6 +51,7 @@ public class LoanThreeDaysBfReturnAlert {
         LocalTime comparisonTime = LocalTime.of(13, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
+            token = null;
         }
     }
 
@@ -64,6 +66,10 @@ public class LoanThreeDaysBfReturnAlert {
     }
     private List<LoanModel> fetchEmailsToSend() {
         Pageable pageable = PageRequest.of(page, EXECUTIONS);
+        if(page == 0){
+            token = apiClient.getToken();
+            System.out.println("token = " + token);
+        }
         return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3), pageable);
     }
 
