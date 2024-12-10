@@ -4,11 +4,17 @@ import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.model.dto.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +25,10 @@ public class ApiClient {
     private String APIGATEWAY_URL;
     @Value("${API_AUTH_URL}")
     private String APIAUTHURL;
+    @Value("${API_USERNAME}")
+    private String USERNAME;
+    @Value("${API_PASSWORD}")
+    private String PASSWORD;
 
 
     public UserInfo getUserInfoById(String userId){
@@ -48,4 +58,20 @@ public class ApiClient {
         return false;
     }
 
+    public String getToken() {
+        Map<String, String> body = new HashMap<>();
+        ResponseEntity<String> token = restClient.post()
+                .uri(APIAUTHURL + "/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toEntity(String.class);
+        if (token.getStatusCode().is2xxSuccessful()) {
+            String[] parts = token.getBody().split("\"data\":\"");
+            return parts[1].split("\"")[0];
+        } else {
+            throw new SpammersPrivateExceptions("User not found", 404);
+        }
+
+    }
 }
