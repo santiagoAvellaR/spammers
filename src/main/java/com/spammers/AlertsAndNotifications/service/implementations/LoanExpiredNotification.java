@@ -35,7 +35,7 @@ public class LoanExpiredNotification {
     private final LoanRepository loanRepository;
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
-    private final ApiClient apiClient;
+    private final ApiClientLocal apiClient;
     private final Logger logger = LoggerFactory.getLogger(LoanExpiredNotification.class);
     private final int EXECUTIONS = 15;
     private final TokenHolder tokenHolder;
