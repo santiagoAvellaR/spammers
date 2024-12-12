@@ -42,7 +42,8 @@
 			**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.java,
 			**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.java,
 			**/com/spammers/AlertsAndNotifications/config/**,
-			**/com/spammers/AlertsAndNotifications/controller/SpammerExceptionHandlerController.java
+			**/com/spammers/AlertsAndNotifications/controller/SpammerExceptionHandlerController.java,
+			**/com/spammers/AlertsAndNotifications/service/implementations/ApiClientLocal.java
 		</sonar.coverage.exclusions>
 
 	</properties>
@@ -146,7 +147,6 @@
 								<exclude>**/com/spammers/AlertsAndNotifications/Application.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/exceptions/*</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/config/*</exclude>
-
 								<exclude>**/com/spammers/AlertsAndNotifications/model/**</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/EmailServiceImpl.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/ApiClient.class</exclude>
@@ -154,6 +154,7 @@
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/FineDailyIncrease.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/LoanThreeDaysBfReturnAlert.class</exclude>
 								<exclude>**/com/spammers/AlertsAndNotifications/controller/SpammerExceptionHandlerController.class</exclude>
+								<exclude>**/com/spammers/AlertsAndNotifications/service/implementations/ApiClientLocal.class</exclude>
 							</excludes>
 						</configuration>
 					</execution>
