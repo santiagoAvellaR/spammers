@@ -18,7 +18,7 @@ public class ApiClientLocal extends ApiClient {
         super(restClient);
     }
     @Override
-    public UserInfo getUserInfoById(String userId){
+    public UserInfo getUserInfoById(String userId, String token){
         return users.get(userId);
     }
 }

@@ -164,7 +164,7 @@ class AdminControllerTest {
                 .andExpect(content().string("Notification Sent!"));
 
         // Verify service method was called
-        verify(adminService).notifyLoan(any(LoanDTO.class));
+        verify(adminService).notifyLoan(any(LoanDTO.class), null);
     }
     @Test
     void testReturnBook_Success() throws Exception {
@@ -180,7 +180,7 @@ class AdminControllerTest {
                 .andExpect(content().string("Book Returned"));
 
         // Verify service method was called
-        verify(adminService).returnBook(eq(bookId), eq(returnedInBadCondition));
+        verify(adminService).returnBook(eq(bookId), eq(returnedInBadCondition),null);
     }
 
 
@@ -199,7 +199,7 @@ class AdminControllerTest {
                 .andExpect(content().string("Fine Created"));
 
         // Verify service method was called
-        verify(adminService).openFine(any(FineInputDTO.class));
+        verify(adminService).openFine(any(FineInputDTO.class), null);
     }
 
     @Test
@@ -213,7 +213,7 @@ class AdminControllerTest {
                 .andExpect(content().string("Fine Closed"));
 
         // Verify service method was called
-        verify(adminService).closeFine(eq(fineId));
+        verify(adminService).closeFine(eq(fineId), null);
     }
 
     @Test

@@ -91,9 +91,9 @@ class AdminServiceImplTest {
                 any(EmailTemplate.class),
                 anyString()
         );
-        when(apiClient.getUserInfoById(loanDTO.getUserId())).thenReturn(userInfo);
+        when(apiClient.getUserInfoById(loanDTO.getUserId(), null)).thenReturn(userInfo);
         // Act
-        adminService.notifyLoan(loanDTO);
+        adminService.notifyLoan(loanDTO, null);
 
         // Assert
         verify(loanRepository).save(any(LoanModel.class));
@@ -126,9 +126,9 @@ class AdminServiceImplTest {
                 any(LocalDate.class),
                 eq(FineDescription.DAMAGED_MATERIAL.getDescription())
         );
-        when(apiClient.getUserInfoById("user123")).thenReturn(userInfo);
+        when(apiClient.getUserInfoById("user123",null)).thenReturn(userInfo);
         // Act
-        adminService.openFine(fineInputDTO);
+        adminService.openFine(fineInputDTO, null);
 
         // Assert
         verify(finesRepository).save(any(FineModel.class));
@@ -248,9 +248,9 @@ class AdminServiceImplTest {
         // Arrange
         when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
-        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
+        when(apiClient.getUserInfoById(loanModel.getUserId(), null)).thenReturn(userInfo);
         // Act
-        adminService.returnBook("book456", false);
+        adminService.returnBook("book456", false, null);
 
         // Assert
         verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
@@ -269,9 +269,9 @@ class AdminServiceImplTest {
         loanModel.setLoanDate(LocalDate.now().minusDays(20)); // Late return
         when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
-        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
+        when(apiClient.getUserInfoById(loanModel.getUserId(), null)).thenReturn(userInfo);
         // Act
-        adminService.returnBook("book456", true);
+        adminService.returnBook("book456", true,null);
 
         // Assert
         verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
@@ -292,7 +292,7 @@ class AdminServiceImplTest {
 
         // Act & Assert
         assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.returnBook("book456", false));
+                () -> adminService.returnBook("book456", false, null));
     }
 
     @Test
@@ -304,9 +304,9 @@ class AdminServiceImplTest {
         fineModel.setDescription("Late return fine");
 
         when(finesRepository.findById("fine123")).thenReturn(Optional.of(fineModel));
-        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
+        when(apiClient.getUserInfoById(loanModel.getUserId(), null)).thenReturn(userInfo);
         // Act
-        adminService.closeFine("fine123");
+        adminService.closeFine("fine123", null);
 
         // Assert
         verify(finesRepository).updateFineStatus("fine123", FineStatus.PAID);
@@ -328,7 +328,7 @@ class AdminServiceImplTest {
 
         // Act & Assert
         assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.closeFine("fine123"));
+                () -> adminService.closeFine("fine123", null));
     }
 
     @Test
@@ -364,7 +364,7 @@ class AdminServiceImplTest {
 
         // Act & Assert
         assertThrows(SpammersPrivateExceptions.class,
-                () -> adminService.openFine(fineInputDTO),
+                () -> adminService.openFine(fineInputDTO, null),
                 "Debe lanzar una excepción cuando no se encuentra un préstamo"
         );
 
@@ -393,9 +393,9 @@ class AdminServiceImplTest {
 
         when(loanRepository.findLastLoan("book456", "user123"))
                 .thenReturn(Optional.of(loanModel));
-        when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
+        when(apiClient.getUserInfoById(loanModel.getUserId(), null)).thenReturn(userInfo);
         // Act
-        adminService.openFine(fineInputDTO);
+        adminService.openFine(fineInputDTO, null);
 
         // Assert
         verify(loanRepository).findLastLoan("book456", "user123");
