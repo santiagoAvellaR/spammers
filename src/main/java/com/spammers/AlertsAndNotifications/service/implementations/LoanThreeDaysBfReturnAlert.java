@@ -32,7 +32,7 @@ public class LoanThreeDaysBfReturnAlert {
     private final LoanRepository loanRepository;
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
-    private final ApiClient apiClient;
+    private final ApiClientLocal apiClient;
     private String token;
     private final Logger logger = LoggerFactory.getLogger(LoanThreeDaysBfReturnAlert.class);
     private int page = 0;
