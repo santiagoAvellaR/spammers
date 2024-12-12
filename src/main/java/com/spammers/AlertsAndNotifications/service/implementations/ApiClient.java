@@ -29,11 +29,14 @@ public class ApiClient {
     private String USERNAME;
     @Value("${API_PASSWORD}")
     private String PASSWORD;
+    private final TokenHolder tokenHolder;
 
 
     public UserInfo getUserInfoById(String userId){
+        String token = tokenHolder.getToken();
         ResponseEntity<UserInfo> userInfo = restClient.get()
                 .uri(APIGATEWAY_URL + "/user/getUserInfoById?id=" + userId)
+                .header("AUTHORIZATION","Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(UserInfo.class);
@@ -60,6 +63,8 @@ public class ApiClient {
 
     public String getToken() {
         Map<String, String> body = new HashMap<>();
+        body.put("username", USERNAME);
+        body.put("password", PASSWORD);
         ResponseEntity<String> token = restClient.post()
                 .uri(APIAUTHURL + "/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,6 +72,7 @@ public class ApiClient {
                 .retrieve()
                 .toEntity(String.class);
         if (token.getStatusCode().is2xxSuccessful()) {
+            System.out.println("token = " + token);
             String[] parts = token.getBody().split("\"data\":\"");
             return parts[1].split("\"")[0];
         } else {

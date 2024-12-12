@@ -2,6 +2,7 @@ package com.spammers.AlertsAndNotifications.config;
 
 import com.spammers.AlertsAndNotifications.exceptions.SpammersPrivateExceptions;
 import com.spammers.AlertsAndNotifications.service.implementations.ApiClient;
+import com.spammers.AlertsAndNotifications.service.implementations.TokenHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final ApiClient apiClient;
+    private final TokenHolder tokenHolder;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String token = getTokenFromRequest(request);
@@ -31,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             boolean isValid = apiClient.validateToken(token);
             if(isValid){
                 String role = decodePayload(token);
+                tokenHolder.setToken(token);
                 System.out.println("role = " + role);
                 UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken("12335"
                         ,

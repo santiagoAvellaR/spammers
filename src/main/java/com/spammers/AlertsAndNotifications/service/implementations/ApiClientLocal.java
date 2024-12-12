@@ -14,8 +14,8 @@ public class ApiClientLocal extends ApiClient {
             "jorge-123",new UserInfo("Jorge","Jorge Guardian", "jorge.gamboa-s@mail.escuelaing.edu.co"),
             "daniel-123", new UserInfo("Daniel", "daniel Guardian", "aldandaniel535@gmail.com") ));
 
-    public ApiClientLocal(RestClient restClient) {
-        super(restClient);
+    public ApiClientLocal(RestClient restClient, TokenHolder tokenHolder) {
+        super(restClient, tokenHolder);
     }
     @Override
     public UserInfo getUserInfoById(String userId){
