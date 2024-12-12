@@ -35,7 +35,7 @@ public class AdminServiceImpl implements AdminService {
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
-    private final ApiClientLocal apiClient;
+    private final ApiClient apiClient;
 
     /**
      * This method returns a book loan by providing the book id a boolean to indicate
