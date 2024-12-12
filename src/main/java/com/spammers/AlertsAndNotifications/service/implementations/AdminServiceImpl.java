@@ -45,13 +45,13 @@ public class AdminServiceImpl implements AdminService {
      *                               false otherwise.
      */
     @Override
-    public void returnBook(String bookId, boolean returnedInBadCondition, String token) {
+    public void returnBook(String bookId, boolean returnedInBadCondition) {
         Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
         //if(loanModel.get().getFines().stream().anyMatch(fineModel -> fineModel.getFineStatus().equals(FineStatus.PENDING))) throw new SpammersPrivateExceptions("THE LOAN HAS PENDING FINES, IT CAN'T BE RETORNED",404);
-        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId(), token);
+        UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 userInfo.getGuardianName(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
@@ -71,12 +71,12 @@ public class AdminServiceImpl implements AdminService {
      * @param fineInputDTO A DTO of the fine.
      */
     @Override
-    public void openFine(FineInputDTO fineInputDTO, String token) throws SpammersPrivateExceptions {
+    public void openFine(FineInputDTO fineInputDTO) throws SpammersPrivateExceptions {
         Optional<LoanModel> lastLoan = loanRepository.findLastLoan(fineInputDTO.getBookId(), fineInputDTO.getUserId());
         if (lastLoan.isPresent()) {
             LoanModel loan = lastLoan.get();
             LocalDate currentDate = LocalDate.now();
-            UserInfo userInfo = apiClient.getUserInfoById(fineInputDTO.getUserId(), token);
+            UserInfo userInfo = apiClient.getUserInfoById(fineInputDTO.getUserId());
             String email = userInfo.getGuardianEmail();
             String studentName = userInfo.getName();
             String description;
@@ -105,13 +105,13 @@ public class AdminServiceImpl implements AdminService {
      *               The parameter should be of type {@link String}.
      */
     @Override
-    public void closeFine(String fineId, String token) throws SpammersPrivateExceptions {
+    public void closeFine(String fineId) throws SpammersPrivateExceptions {
         Optional<FineModel> fineOptional = finesRepository.findById(fineId);
         if (fineOptional.isPresent()) {
             finesRepository.updateFineStatus(fineId, FineStatus.PAID);
             FineModel fineModel = fineOptional.get();
             LocalDate currentDate = LocalDate.now();
-            UserInfo userInfo = apiClient.getUserInfoById(fineModel.getLoan().getUserId(), token);
+            UserInfo userInfo = apiClient.getUserInfoById(fineModel.getLoan().getUserId());
             String email = userInfo.getGuardianEmail();
             NotificationModel notification = new NotificationModel(fineModel.getLoan().getUserId(), email, currentDate, NotificationType.FINE_PAID, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
@@ -140,10 +140,10 @@ public class AdminServiceImpl implements AdminService {
      * @throws SpammersPrivateExceptions
      */
     @Override
-    public void notifyLoan(LoanDTO loanDTO, String token) throws SpammersPrivateExceptions {
+    public void notifyLoan(LoanDTO loanDTO) throws SpammersPrivateExceptions {
         String email = loanDTO.getEmailGuardian();
         LocalDate returnDate = loanDTO.getLoanReturn();
-        UserInfo userInfo = apiClient.getUserInfoById(loanDTO.getUserId(), token);
+        UserInfo userInfo = apiClient.getUserInfoById(loanDTO.getUserId());
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
         loanRepository.save(loanM);
         NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM, false, loanM.getBookName());

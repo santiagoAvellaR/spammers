@@ -29,11 +29,14 @@ public class ApiClient {
     private String USERNAME;
     @Value("${API_PASSWORD}")
     private String PASSWORD;
+    private final TokenHolder tokenHolder;
 
 
-    public UserInfo getUserInfoById(String userId, String token){
+    public UserInfo getUserInfoById(String userId){
+        String token = tokenHolder.getToken();
         ResponseEntity<UserInfo> userInfo = restClient.get()
                 .uri(APIGATEWAY_URL + "/user/getUserInfoById?id=" + userId)
+                .header("AUTHORIZATION","Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .toEntity(UserInfo.class);

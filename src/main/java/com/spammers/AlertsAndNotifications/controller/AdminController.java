@@ -80,8 +80,8 @@ public class AdminController {
      */
     @PostMapping("/loan/create")
     @ResponseStatus(HttpStatus.OK)
-    public String notifyLoan(@RequestBody LoanDTO loanDTO, @RequestParam String token){
-        adminService.notifyLoan(loanDTO, token);
+    public String notifyLoan(@RequestBody LoanDTO loanDTO){
+        adminService.notifyLoan(loanDTO);
         return "Notification Sent!";
     }
 
@@ -97,8 +97,8 @@ public class AdminController {
      */
     @PostMapping("/loan/return")
     @ResponseStatus(HttpStatus.OK)
-    public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition, @RequestParam String token) {
-        adminService.returnBook(bookId, returnedInBadCondition, token);
+    public String returnBook(@RequestParam String bookId, @RequestParam boolean returnedInBadCondition) {
+        adminService.returnBook(bookId, returnedInBadCondition);
         return "Book Returned";
     }
 
@@ -112,8 +112,8 @@ public class AdminController {
      */
     @PostMapping("/users/{userId}/fines/create")
     @ResponseStatus(HttpStatus.OK)
-    public String openFine(@RequestBody FineInputDTO fineDTO, @PathVariable String userId, @RequestParam String token ) {
-        adminService.openFine(fineDTO, token);
+    public String openFine(@RequestBody FineInputDTO fineDTO, @PathVariable String userId) {
+        adminService.openFine(fineDTO);
         return "Fine Created";
     }
 
@@ -126,8 +126,8 @@ public class AdminController {
      */
     @PutMapping("/users/fines/{fineId}/close")
     @ResponseStatus(HttpStatus.OK)
-    public String closeFine(@PathVariable String fineId,  @RequestParam String token) {
-        adminService.closeFine(fineId, token);
+    public String closeFine(@PathVariable String fineId) {
+        adminService.closeFine(fineId);
         return "Fine Closed";
     }
 

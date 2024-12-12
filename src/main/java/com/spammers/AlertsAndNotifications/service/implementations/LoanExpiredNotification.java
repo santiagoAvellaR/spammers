@@ -38,7 +38,7 @@ public class LoanExpiredNotification {
     private final ApiClient apiClient;
     private final Logger logger = LoggerFactory.getLogger(LoanExpiredNotification.class);
     private final int EXECUTIONS = 15;
-    private String token;
+    private final TokenHolder tokenHolder;
     private int page = 0;
     
     /**
@@ -55,7 +55,7 @@ public class LoanExpiredNotification {
         LocalTime comparisonTime = LocalTime.of(10, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
-            token = null;
+            tokenHolder.setToken(null);
         }
     }
 
@@ -72,14 +72,14 @@ public class LoanExpiredNotification {
     private List<LoanModel> fetchEmailsToSend() {
         Pageable pageable = PageRequest.of(page, EXECUTIONS, Sort.by("loanExpired").ascending());
         if(page == 0){
-            token = apiClient.getToken();
+            tokenHolder.setToken(apiClient.getToken());
         }
         return loanRepository.findExpiredLoans(LocalDate.now(), pageable);
     }
 
     private void sendEmail(LoanModel loan) {
         try {
-            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId(), token);
+            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
             String emailBody = String.format("""
                             Buen día,             
                             Nos permitimos informar que su representado, %s, tomó prestado un libro el día %s y, a la fecha, este aún no ha sido devuelto. Agradecemos que gestione su entrega a la mayor brevedad posible.                        

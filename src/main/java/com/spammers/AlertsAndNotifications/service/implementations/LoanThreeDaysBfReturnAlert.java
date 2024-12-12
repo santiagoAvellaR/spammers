@@ -33,7 +33,7 @@ public class LoanThreeDaysBfReturnAlert {
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
     private final ApiClient apiClient;
-    private String token;
+    private final TokenHolder tokenHolder;
     private final Logger logger = LoggerFactory.getLogger(LoanThreeDaysBfReturnAlert.class);
     private int page = 0;
     private final int EXECUTIONS = 15;
@@ -51,7 +51,7 @@ public class LoanThreeDaysBfReturnAlert {
         LocalTime comparisonTime = LocalTime.of(13, 50);
         if (now.isAfter(comparisonTime) || now.equals(comparisonTime)) {
             page = 0;
-            token = null;
+            tokenHolder.setToken(null);
         }
     }
 
@@ -67,15 +67,14 @@ public class LoanThreeDaysBfReturnAlert {
     private List<LoanModel> fetchEmailsToSend() {
         Pageable pageable = PageRequest.of(page, EXECUTIONS);
         if(page == 0){
-            token = apiClient.getToken();
-            System.out.println("token = " + token);
+            tokenHolder.setToken(apiClient.getToken());
         }
         return loanRepository.findLoansExpiringInExactlyNDays(LocalDate.now().plusDays(3), pageable);
     }
 
     private void sendEmail(LoanModel loan) {
         try {
-            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId(), token);
+            UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
             emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
                     ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
             NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
