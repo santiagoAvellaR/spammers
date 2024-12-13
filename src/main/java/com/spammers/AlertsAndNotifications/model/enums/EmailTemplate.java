@@ -51,7 +51,7 @@ public enum EmailTemplate {
             """
             Buen día, %s:
             
-            Le informamos que el estudiante %s ha realizado la devolución de un libro que tomó prestado el día %s.
+            Le informamos que el estudiante %s ha realizado la devolución del libro %s que tomó prestado el día %s.
             %s%s
     
             Gracias,
