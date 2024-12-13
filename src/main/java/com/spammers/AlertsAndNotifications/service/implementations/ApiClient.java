@@ -34,19 +34,29 @@ public class ApiClient {
 
     public UserInfo getUserInfoById(String userId){
         String token = tokenHolder.getToken();
-        ResponseEntity<UserInfo> userInfo = restClient.get()
-                .uri(APIGATEWAY_URL + "/user/getUserInfoById?id=" + userId)
-                .header("AUTHORIZATION","Bearer " + token)
+        ResponseEntity<String> userInfo = restClient.get()
+                .uri(APIGATEWAY_URL + "/find/student/{id}", userId)
+                //.header("AUTHORIZATION","Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .toEntity(UserInfo.class);
+                .toEntity(String.class);
         if(userInfo.getStatusCode().is4xxClientError()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.USER_NOT_FOUND,404);
         } else if (userInfo.getStatusCode().is5xxServerError()) {
             throw new SpammersPrivateExceptions("User Service error", 500);
-        }else{
-            return userInfo.getBody();
         }
+        String name = userInfo.getBody().split("\"studentName\":\"")[1].split("\"")[0];
+        String guardianName = userInfo.getBody().split("\"responsibleName\":\"")[1].split("\"")[0];
+        String guardianEmail = userInfo.getBody().split("\"responsibleEmail\":\"")[1].split("\"")[0];
+        System.out.println("guardianEmail = " + guardianEmail);
+        System.out.println("guardianName = " + guardianName);
+        System.out.println("name = " + name);
+        UserInfo userInfoEst = new UserInfo();
+        userInfoEst.setName(name);
+        userInfoEst.setGuardianName(guardianName);
+        userInfoEst.setGuardianEmail(guardianEmail);
+        return userInfoEst;
+
     }
     public boolean validateToken(String token){
         ResponseEntity<?> validateClient = restClient.get()

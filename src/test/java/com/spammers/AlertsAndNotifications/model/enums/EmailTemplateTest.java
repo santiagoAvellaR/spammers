@@ -54,17 +54,17 @@ class EmailTemplateTest {
     @Test
     void getTemplatedBookReturn(){
         String expectedTemplate= """
-        Buen día, %s:
-               
-        Le informamos que el estudiante %s ha realizado la devolución de un libro que tomó prestado el día %s.
-        %s%s
-        
-        Gracias,
-        Cordial saludo.
-                
-        Este es el gestor de notificaciones de BibloSoft.
-        No responder a este mensaje ya que es enviado por un motor de notificaciones automáticas.
-        """;
+            Buen día, %s:
+            
+            Le informamos que el estudiante %s ha realizado la devolución del libro %s que tomó prestado el día %s.
+            %s%s
+    
+            Gracias,
+            Cordial saludo.
+            
+            Este es el gestor de notificaciones de BibloSoft.
+            No responder a este mensaje ya que es enviado por un motor de notificaciones automáticas.
+            """;
         assertEquals(expectedTemplate, EmailTemplate.BOOK_RETURN.getTemplate());
 
     }
@@ -119,10 +119,11 @@ class EmailTemplateTest {
         String loanDate = "22/11/2024";
         String delayMessage = "Sin embargo, tuvo un retraso de 3 días.\n";
         String conditionMessage = "Además, el libro se devolvió en malas condiciones.\n";
+        String book = "Cien años de seriedad";
         String expectedMessage = """
         Buen día, Daniel Aldana:
                
-        Le informamos que el estudiante Fernando Aldana ha realizado la devolución de un libro que tomó prestado el día 22/11/2024.
+        Le informamos que el estudiante Fernando Aldana ha realizado la devolución del libro Cien años de seriedad que tomó prestado el día 22/11/2024.
         Sin embargo, tuvo un retraso de 3 días.
         Además, el libro se devolvió en malas condiciones.
         
@@ -133,7 +134,7 @@ class EmailTemplateTest {
         Este es el gestor de notificaciones de BibloSoft.
         No responder a este mensaje ya que es enviado por un motor de notificaciones automáticas.
         """;
-        assertEquals(expectedMessage, EmailTemplate.BOOK_RETURN.formatBody(guardianName,studentName,loanDate,delayMessage,conditionMessage));
+        assertEquals(expectedMessage, EmailTemplate.BOOK_RETURN.formatBody(guardianName,studentName,book,loanDate,delayMessage,conditionMessage));
     }
 
 }

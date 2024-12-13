@@ -35,7 +35,7 @@ public class LoanExpiredNotification {
     private final LoanRepository loanRepository;
     private final NotificationRepository notificationRepository;
     private final EmailService emailService;
-    private final ApiClientLocal apiClient;
+    private final ApiClient apiClient;
     private final Logger logger = LoggerFactory.getLogger(LoanExpiredNotification.class);
     private final int EXECUTIONS = 15;
     private final TokenHolder tokenHolder;
@@ -81,14 +81,14 @@ public class LoanExpiredNotification {
         try {
             UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
             String emailBody = String.format("""
-                            Buen día,             
-                            Nos permitimos informar que su representado, %s, tomó prestado un libro el día %s y, a la fecha, este aún no ha sido devuelto. Agradecemos que gestione su entrega a la mayor brevedad posible.                        
+                            Buen día, %s         
+                            Nos permitimos informar que su representado, %s, tomó prestado el libro  %s, el día %s y, a la fecha, este aún no ha sido devuelto. Agradecemos que gestione su entrega a la mayor brevedad posible.                        
                             Quedamos atentos a su pronta respuesta.                     
                             Gracias por su atención.
                             Cordial saludo.
                             Este es el gestor de notificaciones de BibloSoft.
                             No responder a esta cuenta de correo ya que es enviada por un motor de notificaciones automáticas."""
-                    , userInfo.getName(), loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                    ,userInfo.getGuardianName(), userInfo.getName(),loan.getBookName(), loan.getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Expiración préstamo libro", emailBody);
             NotificationModel notification = new LoanNotification(loan.getUserId(), userInfo.getGuardianEmail()
                     , LocalDate.now(), NotificationType.BOOK_LOAN_EXPIRED, loan, false, loan.getBookName());

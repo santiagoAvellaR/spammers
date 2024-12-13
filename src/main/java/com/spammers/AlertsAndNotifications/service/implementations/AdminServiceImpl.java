@@ -35,7 +35,7 @@ public class AdminServiceImpl implements AdminService {
     private final LoanRepository loanRepository;
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
-    private final ApiClientLocal apiClient;
+    private final ApiClient apiClient;
 
     /**
      * This method returns a book loan by providing the book id a boolean to indicate
@@ -46,7 +46,7 @@ public class AdminServiceImpl implements AdminService {
      */
     @Override
     public void returnBook(String bookId, boolean returnedInBadCondition) {
-        Optional<LoanModel> loanModel = loanRepository.findLoanByBookIdAndBookReturned(bookId, false);
+        Optional<LoanModel> loanModel = loanRepository.findFirstLoanByBookIdAndBookReturned(bookId, false);
         if(loanModel.isEmpty()){
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
         }
@@ -54,7 +54,7 @@ public class AdminServiceImpl implements AdminService {
         UserInfo userInfo = apiClient.getUserInfoById(loanModel.get().getUserId());
         int days = daysDifference(loanModel.get().getLoanDate());
         String emailBody = buildEmailBody(loanModel.get().getLoanDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                userInfo.getGuardianName(), userInfo.getName(), loanModel.get().getStatus(), returnedInBadCondition, days);
+                userInfo.getGuardianName(), userInfo.getName(), loanModel.get().getBookName(), loanModel.get().getStatus(), returnedInBadCondition, days);
         emailService.sendEmailCustomised(userInfo.getGuardianEmail(), "Devolución de un libro", emailBody);
         loanModel.get().setBookReturned(true);
         loanRepository.save(loanModel.get());
@@ -87,7 +87,7 @@ public class AdminServiceImpl implements AdminService {
             finesRepository.save(fineModel);
             NotificationModel notification = new FineNotification(loan.getUserId(), email, currentDate, NotificationType.FINE, fineModel, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description);
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT,     userInfo.getGuardianName() + "\nTe informamos que " + "se ha registrado una nueva multa: ", fineInputDTO.getAmount(), currentDate, description + "\nAl estudiante " + userInfo.getName() + " por el libro " + lastLoan.get().getBookName() + ".");
         }
         else {
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.LOAN_NOT_FOUND, 404);
@@ -115,7 +115,7 @@ public class AdminServiceImpl implements AdminService {
             String email = userInfo.getGuardianEmail();
             NotificationModel notification = new NotificationModel(fineModel.getLoan().getUserId(), email, currentDate, NotificationType.FINE_PAID, false, fineModel.getLoan().getBookName());
             notificationRepository.save(notification);
-            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription());
+            emailService.sendEmailTemplate(email, EmailTemplate.FINE_ALERT, "Se ha cerrado una multa: ", fineModel.getAmount(), currentDate, fineModel.getDescription() + "\nAl estudiante " + fineModel.getStudentName());
         } else{
             throw new SpammersPrivateExceptions(SpammersPrivateExceptions.FINE_NOT_FOUND, 404);
         }
@@ -147,9 +147,8 @@ public class AdminServiceImpl implements AdminService {
         LoanModel loanM = new LoanModel(loanDTO.getUserId(),loanDTO.getBookId(),LocalDate.now(),loanDTO.getBookName(),returnDate,true);
         loanRepository.save(loanM);
         NotificationModel notification = new LoanNotification(loanDTO.getUserId(), email, returnDate, NotificationType.BOOK_LOAN,loanM, false, loanM.getBookName());
-
         notificationRepository.save(notification);
-        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,"Préstamo realizado a: "+userInfo.getName()+"\nArtículo: " +loanDTO.getBookName()+
+        emailService.sendEmailTemplate(email,EmailTemplate.NOTIFICATION_ALERT,userInfo.getGuardianName() + ", Te informamos de un nuevo préstamo, que fue realizado a: "+userInfo.getName()+"\nArtículo: " +loanDTO.getBookName()+
                 "\nFecha de devolucion: "+returnDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
@@ -191,15 +190,15 @@ public class AdminServiceImpl implements AdminService {
         return LocalDate.now().isAfter(deadline) ? (int) ChronoUnit.DAYS.between(deadline, LocalDate.now()): 0;
     }
 
-    private  String buildEmailBody(String loanDate, String guardianName, String studentName, boolean statusLoan, boolean badCondition, int delay) {
+    private  String buildEmailBody(String loanDate, String guardianName, String studentName, String bookName, boolean statusLoan, boolean badCondition, int delay) {
 
         String delayMessage = !statusLoan ? "Sin embargo, tuvo un retraso de " + delay + " días.\n" : "";
         String conditionMessage = badCondition ? "Además, el libro se devolvió en malas condiciones.\n" : "";
-
         return String.format(
                 EmailTemplate.BOOK_RETURN.getTemplate(),
                 guardianName,
                 studentName,
+                bookName,
                 loanDate,
                 delayMessage,
                 conditionMessage

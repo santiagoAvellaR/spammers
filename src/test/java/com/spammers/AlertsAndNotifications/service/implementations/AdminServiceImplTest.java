@@ -121,10 +121,10 @@ class AdminServiceImplTest {
         doNothing().when(emailService).sendEmailTemplate(
                 eq(userInfo.getGuardianEmail()),
                 eq(EmailTemplate.FINE_ALERT),
-                eq("Se ha registrado una nueva multa: "),
-                eq(50.0f),  // Use float here
-                any(LocalDate.class),
-                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+                eq("null\nTe informamos que se ha registrado una nueva multa: "),
+                eq(50.0f),
+                eq(LocalDate.now()),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription() + "\nAl estudiante Test User por el libro Test Book.")
         );
         when(apiClient.getUserInfoById("user123")).thenReturn(userInfo);
         // Act
@@ -136,10 +136,10 @@ class AdminServiceImplTest {
         verify(emailService).sendEmailTemplate(
                 eq(userInfo.getGuardianEmail()),
                 eq(EmailTemplate.FINE_ALERT),
-                eq("Se ha registrado una nueva multa: "),
+                eq("null\nTe informamos que se ha registrado una nueva multa: "),
                 eq(50.0f),
-                any(LocalDate.class),
-                eq(FineDescription.DAMAGED_MATERIAL.getDescription())
+                eq(LocalDate.now()),
+                eq(FineDescription.DAMAGED_MATERIAL.getDescription() + "\nAl estudiante Test User por el libro Test Book.")
         );
     }
     @Test
@@ -246,14 +246,14 @@ class AdminServiceImplTest {
     @Test
     void testReturnBook_OnTimeAndGoodCondition() {
         // Arrange
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+        when(loanRepository.findFirstLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
         when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.returnBook("book456", false);
 
         // Assert
-        verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
+        verify(loanRepository).findFirstLoanByBookIdAndBookReturned("book456", false);
         verify(emailService).sendEmailCustomised(
                 eq("guardian@email.com"),
                 eq("Devolución de un libro"),
@@ -267,14 +267,14 @@ class AdminServiceImplTest {
     void testReturnBook_LateAndBadCondition() {
         // Arrange
         loanModel.setLoanDate(LocalDate.now().minusDays(20)); // Late return
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+        when(loanRepository.findFirstLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.of(loanModel));
         when(apiClient.getUserInfoById(loanModel.getUserId())).thenReturn(userInfo);
         // Act
         adminService.returnBook("book456", true);
 
         // Assert
-        verify(loanRepository).findLoanByBookIdAndBookReturned("book456", false);
+        verify(loanRepository).findFirstLoanByBookIdAndBookReturned("book456", false);
         verify(emailService).sendEmailCustomised(
                 eq("guardian@email.com"),
                 eq("Devolución de un libro"),
@@ -287,7 +287,7 @@ class AdminServiceImplTest {
     @Test
     void testReturnBook_LoanNotFound() {
         // Arrange
-        when(loanRepository.findLoanByBookIdAndBookReturned("book456", false))
+        when(loanRepository.findFirstLoanByBookIdAndBookReturned("book456", false))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
@@ -314,10 +314,10 @@ class AdminServiceImplTest {
         verify(emailService).sendEmailTemplate(
                 eq("guardian@email.com"),
                 eq(EmailTemplate.FINE_ALERT),
-                anyString(),
+                eq("Se ha cerrado una multa: "),
                 eq(10.50f),
-                any(LocalDate.class),
-                eq("Late return fine")
+                eq(LocalDate.now()),
+                eq("Late return fine\nAl estudiante null")
         );
     }
 
@@ -410,10 +410,10 @@ class AdminServiceImplTest {
         verify(emailService).sendEmailTemplate(
                 eq("guardian@email.com"),
                 eq(EmailTemplate.FINE_ALERT),
-                anyString(),
+                eq("null\nTe informamos que se ha registrado una nueva multa: "),
                 eq(10f),
-                any(LocalDate.class),
-                eq("Libro dañado en la página 5")
+                eq(LocalDate.now()),
+                eq("Libro dañado en la página 5\nAl estudiante null por el libro Test Book.")
         );
     }
 
