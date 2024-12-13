@@ -76,7 +76,7 @@ public class LoanThreeDaysBfReturnAlert {
         try {
             UserInfo userInfo = apiClient.getUserInfoById(loan.getUserId());
             emailService.sendEmailTemplate(userInfo.getGuardianEmail(), EmailTemplate.NOTIFICATION_ALERT
-                    ,"Estudiante: " + userInfo.getName() + "tiene 3 dias para devolver el libro, de lo contrario se generará una multa.");
+                    ,userInfo.getGuardianName() + "te informamos que el " + "estudiante: " + userInfo.getName() + " tiene 3 dias para devolver el libro " + loan.getBookName() + " de lo contrario se generará una multa.");
             NotificationModel notificationModel = new NotificationModel(loan.getUserId(),userInfo.getGuardianEmail()
                     , LocalDate.now() , NotificationType.ALERT, false, loan.getBookName());
             notificationRepository.save(notificationModel);

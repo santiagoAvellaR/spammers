@@ -53,9 +53,9 @@ public interface LoanRepository extends JpaRepository<LoanModel, String> {
     
     @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId AND l.bookId = :givenBookId")
     Optional<LoanModel> findLoanByUserAndBookId(@Param("givenUserId") String givenUserId, @Param("givenBookId") String givenBookId);
-  
-    @Query("SELECT l FROM LoanModel l WHERE l.bookId = :givenBookId AND l.bookReturned = :bookReturned")
-    Optional<LoanModel> findLoanByBookIdAndBookReturned(@Param("givenBookId") String givenBookId, @Param("bookReturned") boolean bookReturned);
+
+
+    Optional<LoanModel> findFirstLoanByBookIdAndBookReturned(String givenBookId, boolean bookReturned);
 
     @Query("SELECT l FROM LoanModel l WHERE l.userId = :givenUserId")
     Page<LoanModel> findByUserId(@Param("givenUserId") String givenUserId, Pageable pageable);
