@@ -16,6 +16,7 @@ import java.time.LocalDate;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/notifications/admin")
+@CrossOrigin
 public class AdminController {
     private final AdminService adminService;
 
